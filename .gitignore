@@ -1,0 +1,7 @@
+
+
+# Cursor (local IDE config)
+.cursor/
+
+# Planning docs (local only)
+architecture.md
