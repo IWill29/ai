@@ -25,6 +25,13 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader \
     && npm ci \
     && npm run build
 
+RUN groupadd -g 1000 appuser \
+    && useradd -u 1000 -g appuser -m appuser \
+    && chown -R appuser:appuser storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
 EXPOSE 8000
+
+USER appuser
 
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
