@@ -1,4 +1,4 @@
-﻿services:
+services:
   app:
     build:
       context: .
@@ -45,4 +45,3 @@
 volumes:
   pgsql_data:
   redis_data:
-
