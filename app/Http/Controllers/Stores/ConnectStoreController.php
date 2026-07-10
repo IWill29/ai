@@ -35,6 +35,7 @@ class ConnectStoreController extends Controller
                 accountId: $request->user()->account_id,
                 domain: $request->validated('domain'),
                 accessToken: $request->validated('access_token'),
+                apiSecret: $request->validated('api_secret'),
                 name: $request->validated('name'),
             );
         } catch (InvalidCredentialsException $exception) {

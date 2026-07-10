@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Stores;
 use App\Domains\Stores\Actions\DisconnectStoreAction;
 use App\Domains\Stores\Actions\ReconnectShopifyStoreAction;
 use App\Domains\Stores\Exceptions\InvalidCredentialsException;
+use App\Domains\Stores\Jobs\IncrementalSyncJob;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Stores\ReconnectShopifyStoreRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -63,6 +65,40 @@ class StoreController extends Controller
         ]);
 
         return to_route('stores.index');
+    }
+
+    public function sync(StoreConnection $storeConnection): RedirectResponse
+    {
+        $this->authorize('update', $storeConnection);
+
+        $meta = is_array($storeConnection->meta) ? $storeConnection->meta : [];
+        $syncMeta = is_array($meta['sync'] ?? null) ? $meta['sync'] : [];
+        $syncState = $syncMeta['state'] ?? 'idle';
+
+        if ($syncState === 'syncing') {
+            return back()->with('sync', 'already_syncing');
+        }
+
+        IncrementalSyncJob::dispatch($storeConnection->id)->afterCommit();
+
+        return back()->with('sync', 'started');
+    }
+
+    public function syncStatus(StoreConnection $storeConnection): JsonResponse
+    {
+        $this->authorize('view', $storeConnection);
+
+        $storeConnection->refresh();
+        $meta = is_array($storeConnection->meta) ? $storeConnection->meta : [];
+        $sync = is_array($meta['sync'] ?? null) ? $meta['sync'] : [];
+
+        return response()->json([
+            'state' => $sync['state'] ?? 'idle',
+            'entity' => $sync['entity'] ?? null,
+            'error' => $sync['error'] ?? null,
+            'last_synced_at' => $storeConnection->last_synced_at?->toIso8601String(),
+            'status' => $storeConnection->status,
+        ]);
     }
 
     public function reconnect(

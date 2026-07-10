@@ -22,6 +22,7 @@ class ConnectShopifyStoreRequest extends FormRequest
         return [
             'domain' => ['required', 'string', 'regex:/^[a-z0-9-]+\.myshopify\.com$/i'],
             'access_token' => ['required', 'string', 'starts_with:shpat_'],
+            'api_secret' => ['required', 'string', 'min:16'],
             'name' => ['nullable', 'string', 'max:120'],
         ];
     }

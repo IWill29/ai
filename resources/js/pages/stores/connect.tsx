@@ -33,8 +33,8 @@ const onboardingSteps = [
     },
     {
         icon: Link2,
-        title: 'Install and copy token',
-        description: 'Install the app, reveal the Admin API access token (shpat_…), and paste it below.',
+        title: 'Install and copy credentials',
+        description: 'Install the app, then copy the Admin API access token (shpat_…) and API secret key below.',
     },
 ];
 
@@ -109,7 +109,7 @@ export default function StoresConnect({ scopes }: Props) {
                         <Form
                             {...ConnectStoreController.store.form()}
                             options={{ preserveScroll: true }}
-                            resetOnSuccess={['access_token']}
+                            resetOnSuccess={['access_token', 'api_secret']}
                             className="space-y-6"
                         >
                             {({ processing, errors, wasSuccessful }) => (
@@ -144,6 +144,17 @@ export default function StoresConnect({ scopes }: Props) {
                                             autoComplete="off"
                                         />
                                         <InputError message={errors.access_token} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="api_secret">API secret key</Label>
+                                        <PasswordInput
+                                            id="api_secret"
+                                            name="api_secret"
+                                            placeholder="Required for webhook verification"
+                                            autoComplete="off"
+                                        />
+                                        <InputError message={errors.api_secret} />
                                     </div>
 
                                     {wasSuccessful && (

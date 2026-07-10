@@ -14,6 +14,7 @@ final readonly class OrderQuery
         public ?string $fulfillmentStatus = null,
         public ?string $financialStatus = null,
         public ?DateTimeImmutable $placedAfter = null,
+        public ?DateTimeImmutable $updatedSince = null,
         public ?int $minTotalMinor = null,
         public ?string $search = null,
         public int $limit = 25,
