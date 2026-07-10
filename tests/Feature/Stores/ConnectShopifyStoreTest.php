@@ -12,6 +12,7 @@ use App\Domains\Stores\Models\StoreCredential;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Tests\Concerns\SeedsPlans;
 use Tests\TestCase;
 
@@ -38,6 +39,8 @@ class ConnectShopifyStoreTest extends TestCase
 
     public function test_connects_a_valid_shopify_store(): void
     {
+        Queue::fake();
+
         Http::fake([
             '*/graphql.json' => Http::response([
                 'data' => ['shop' => ['name' => 'Demo Store']],
@@ -50,6 +53,7 @@ class ConnectShopifyStoreTest extends TestCase
             ->post(route('stores.store'), [
                 'domain' => 'demo.myshopify.com',
                 'access_token' => 'shpat_test_token_1234567890',
+                'api_secret' => 'test_api_secret_key_12345',
                 'name' => 'Demo Store',
             ])
             ->assertRedirect(route('stores.index'));
@@ -84,6 +88,7 @@ class ConnectShopifyStoreTest extends TestCase
             ->post(route('stores.store'), [
                 'domain' => 'demo.myshopify.com',
                 'access_token' => 'shpat_invalid_token_123456789',
+                'api_secret' => 'test_api_secret_key_12345',
             ])
             ->assertSessionHasErrors('access_token');
 
@@ -92,6 +97,8 @@ class ConnectShopifyStoreTest extends TestCase
 
     public function test_enforces_plan_store_limits(): void
     {
+        Queue::fake();
+
         Http::fake([
             '*/graphql.json' => Http::response([
                 'data' => ['shop' => ['name' => 'Demo Store']],
@@ -113,6 +120,7 @@ class ConnectShopifyStoreTest extends TestCase
             ->post(route('stores.store'), [
                 'domain' => 'second.myshopify.com',
                 'access_token' => 'shpat_test_token_1234567890',
+                'api_secret' => 'test_api_secret_key_12345',
             ])
             ->assertSessionHasErrors('domain');
 
@@ -133,6 +141,7 @@ class ConnectShopifyStoreTest extends TestCase
             accountId: $user->account_id,
             domain: 'demo.myshopify.com',
             accessToken: 'shpat_invalid_token_123456789',
+            apiSecret: 'test_api_secret_key_12345',
             name: null,
         );
     }

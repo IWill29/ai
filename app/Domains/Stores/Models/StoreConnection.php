@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property Carbon|null $last_synced_at
+ * @property array<string, mixed>|null $meta
  */
 class StoreConnection extends Model
 {

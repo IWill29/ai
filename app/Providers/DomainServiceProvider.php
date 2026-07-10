@@ -21,7 +21,9 @@ use App\Domains\Chat\Services\StubAttachmentUploadService;
 use App\Domains\Dashboard\Contracts\MetricsReader;
 use App\Domains\Dashboard\Services\SyncedMetricsReader;
 use App\Domains\Stores\Contracts\StoreAdapterFactory;
+use App\Domains\Stores\Services\DefaultSyncService;
 use App\Domains\Stores\Services\StoreAdapterManager;
+use App\Domains\Stores\Services\SyncService;
 use Illuminate\Support\ServiceProvider;
 
 class DomainServiceProvider extends ServiceProvider
@@ -33,6 +35,7 @@ class DomainServiceProvider extends ServiceProvider
      */
     public array $bindings = [
         StoreAdapterFactory::class => StoreAdapterManager::class,
+        SyncService::class => DefaultSyncService::class,
         AgentLlmPort::class => OpenRouterAdapter::class,
         AgentService::class => DefaultAgentService::class,
         MemoryService::class => StubMemoryService::class,

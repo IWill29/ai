@@ -21,6 +21,7 @@ $files = [
 foreach ($files as $path) {
     if (! is_file($path)) {
         fwrite(STDERR, "Missing: {$path}\n");
+
         continue;
     }
 

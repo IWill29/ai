@@ -15,12 +15,14 @@ use App\Domains\Stores\DTOs\ProductImageInput;
 use App\Domains\Stores\Exceptions\InvalidCredentialsException;
 use App\Domains\Stores\Exceptions\ResourceNotFoundException;
 use App\Domains\Stores\Exceptions\StoreApiException;
+use App\Domains\Stores\Jobs\IncrementalSyncJob;
 use DateTimeImmutable;
 
 final class ShopifyAdapter implements StorePort
 {
     public function __construct(
         private readonly ShopifyClient $client,
+        private readonly ?string $connectionId = null,
         private readonly ShopifyNormalizer $normalizer = new ShopifyNormalizer,
     ) {}
 
@@ -674,7 +676,11 @@ final class ShopifyAdapter implements StorePort
 
     public function syncAll(): void
     {
-        // Phase 6 — initial full sync job
+        if ($this->connectionId === null) {
+            throw new StoreApiException('Store connection is not bound to this adapter.');
+        }
+
+        IncrementalSyncJob::dispatch($this->connectionId);
     }
 
     /**
@@ -806,6 +812,10 @@ final class ShopifyAdapter implements StorePort
 
         if ($query->placedAfter !== null) {
             $parts[] = 'created_at:>='.$query->placedAfter->format('Y-m-d');
+        }
+
+        if ($query->updatedSince !== null) {
+            $parts[] = 'updated_at:>='.$query->updatedSince->format('Y-m-d\TH:i:s\Z');
         }
 
         if ($query->search !== null) {
