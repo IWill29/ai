@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domains\Dashboard\Services;
 
 use App\Domains\Dashboard\Contracts\MetricsReader;
+use App\Domains\Shared\Concerns\DefersImplementation;
 use App\Domains\Stores\DTOs\MetricDTO;
-use BadMethodCallException;
 use DateTimeImmutable;
 
 /**
@@ -14,8 +14,10 @@ use DateTimeImmutable;
  */
 final class SyncedMetricsReader implements MetricsReader
 {
+    use DefersImplementation;
+
     public function forStores(array $storeConnectionIds, DateTimeImmutable $from, DateTimeImmutable $to): MetricDTO
     {
-        throw new BadMethodCallException('MetricsReader not implemented until Phase 7.');
+        $this->notImplemented('MetricsReader');
     }
 }

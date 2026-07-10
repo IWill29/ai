@@ -6,7 +6,7 @@ namespace App\Domains\Chat\Services;
 
 use App\Domains\Chat\Contracts\AttachmentUploadService;
 use App\Domains\Chat\DTOs\AttachmentDTO;
-use BadMethodCallException;
+use App\Domains\Shared\Concerns\DefersImplementation;
 use Illuminate\Http\UploadedFile;
 
 /**
@@ -14,18 +14,20 @@ use Illuminate\Http\UploadedFile;
  */
 final class StubAttachmentUploadService implements AttachmentUploadService
 {
+    use DefersImplementation;
+
     public function store(string $accountId, string $userId, UploadedFile $file): AttachmentDTO
     {
-        throw new BadMethodCallException('AttachmentUploadService not implemented until Phase 8.');
+        $this->notImplemented('AttachmentUploadService');
     }
 
     public function deletePending(string $accountId, string $attachmentId): void
     {
-        throw new BadMethodCallException('AttachmentUploadService not implemented until Phase 8.');
+        $this->notImplemented('AttachmentUploadService');
     }
 
     public function loadForMessage(string $accountId, array $attachmentIds): array
     {
-        throw new BadMethodCallException('AttachmentUploadService not implemented until Phase 8.');
+        $this->notImplemented('AttachmentUploadService');
     }
 }

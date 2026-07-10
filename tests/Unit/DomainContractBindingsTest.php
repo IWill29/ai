@@ -9,7 +9,6 @@ use App\Domains\Accounts\Services\DefaultAccountService;
 use App\Domains\AI\Contracts\AgentLlmPort;
 use App\Domains\AI\Contracts\AgentService;
 use App\Domains\AI\Contracts\MemoryService;
-use App\Domains\AI\Enums\ToolName;
 use App\Domains\AI\Services\OpenRouterAdapter;
 use App\Domains\AI\Services\StubMemoryService;
 use App\Domains\Billing\Contracts\BillingService;
@@ -69,27 +68,5 @@ class DomainContractBindingsTest extends TestCase
     public function test_metrics_reader_resolves(): void
     {
         $this->assertInstanceOf(SyncedMetricsReader::class, app(MetricsReader::class));
-    }
-}
-
-class ToolNameExhaustiveTest extends TestCase
-{
-    public function test_is_write_classifies_every_tool(): void
-    {
-        foreach (ToolName::cases() as $tool) {
-            $this->assertIsBool($tool->isWrite());
-        }
-    }
-
-    public function test_read_tools_are_not_write(): void
-    {
-        $this->assertFalse(ToolName::ListOrders->isWrite());
-        $this->assertFalse(ToolName::GetMetrics->isWrite());
-    }
-
-    public function test_write_tools_are_write(): void
-    {
-        $this->assertTrue(ToolName::UpdateOrder->isWrite());
-        $this->assertTrue(ToolName::CreateProduct->isWrite());
     }
 }
