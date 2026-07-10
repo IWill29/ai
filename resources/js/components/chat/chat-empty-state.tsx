@@ -33,6 +33,10 @@ function revealClass(delayClass?: string): string {
     );
 }
 
+function staggerRevealDelay(index: number, delays: readonly string[]): string {
+    return delays[index] ?? delays[delays.length - 1] ?? '';
+}
+
 function ChatPreview() {
     return (
         <div
@@ -78,11 +82,11 @@ function StepRail() {
                     className={cn(
                         'relative flex flex-1 flex-col items-center text-center sm:px-2',
                         revealClass(
-                            index === 0
-                                ? 'motion-safe:delay-150'
-                                : index === 1
-                                  ? 'motion-safe:delay-200'
-                                  : 'motion-safe:delay-250',
+                            staggerRevealDelay(index, [
+                                'motion-safe:delay-150',
+                                'motion-safe:delay-200',
+                                'motion-safe:delay-250',
+                            ]),
                         ),
                     )}
                 >

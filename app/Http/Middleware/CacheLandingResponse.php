@@ -61,18 +61,10 @@ final class CacheLandingResponse
             return false;
         }
 
-        if (! $request->isMethod('GET') || $request->user() !== null || ! $request->routeIs('home')) {
-            return false;
-        }
-
-        if ($request->expectsJson()) {
-            return false;
-        }
-
-        if ($request->hasSession() && $request->session()->has('errors')) {
-            return false;
-        }
-
-        return true;
+        return $request->isMethod('GET')
+            && $request->user() === null
+            && $request->routeIs('home')
+            && ! $request->expectsJson()
+            && (! $request->hasSession() || ! $request->session()->has('errors'));
     }
 }

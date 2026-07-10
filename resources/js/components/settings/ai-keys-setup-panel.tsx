@@ -32,10 +32,10 @@ type OpenRouterState = {
     defaultModel: string | null;
 };
 
-type Props = {
+type Props = Readonly<{
     openRouter: OpenRouterState;
     suggestedModels: string[];
-};
+}>;
 
 const MODEL_HINTS: Record<string, string> = {
     'openai/gpt-4o-mini': 'Fast & affordable — great for everyday chat',
@@ -200,7 +200,8 @@ export default function AiKeysSetupPanel({ openRouter, suggestedModels }: Props)
                                         <code className="rounded bg-muted/60 px-1 py-0.5 font-mono text-[11px]">
                                             sk-or-
                                         </code>
-                                        . Never share it — we only use it for your chat requests.
+                                        {' '}
+                                        Never share it — we only use it for your chat requests.
                                     </p>
                                     <InputError message={errors.api_key} />
                                 </div>

@@ -64,6 +64,10 @@ function revealClass(delayClass?: string): string {
     );
 }
 
+function staggerRevealDelay(index: number, delays: readonly string[]): string {
+    return delays[index] ?? delays[delays.length - 1] ?? '';
+}
+
 function BentoPreview() {
     return (
         <div
@@ -80,11 +84,11 @@ function BentoPreview() {
                         'group relative flex flex-col gap-3 p-4 sm:p-5',
                         tileClass,
                         revealClass(
-                            index === 0
-                                ? 'motion-safe:delay-75'
-                                : index === 1
-                                  ? 'motion-safe:delay-100'
-                                  : 'motion-safe:delay-150',
+                            staggerRevealDelay(index, [
+                                'motion-safe:delay-75',
+                                'motion-safe:delay-100',
+                                'motion-safe:delay-150',
+                            ]),
                         ),
                         'motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out',
                         'motion-safe:group-hover:scale-[1.02] motion-reduce:group-hover:scale-100',
@@ -121,11 +125,11 @@ function StepRail() {
                     className={cn(
                         'relative flex flex-1 flex-col items-center text-center sm:px-2',
                         revealClass(
-                            index === 0
-                                ? 'motion-safe:delay-200'
-                                : index === 1
-                                  ? 'motion-safe:delay-250'
-                                  : 'motion-safe:delay-300',
+                            staggerRevealDelay(index, [
+                                'motion-safe:delay-200',
+                                'motion-safe:delay-250',
+                                'motion-safe:delay-300',
+                            ]),
                         ),
                     )}
                 >

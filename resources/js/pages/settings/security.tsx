@@ -2,9 +2,9 @@ import { Head } from '@inertiajs/react';
 import SecurityPasswordPanel from '@/components/settings/security-password-panel';
 import { edit } from '@/routes/security';
 
-type Props = {
+type Props = Readonly<{
     passwordRules: string;
-};
+}>;
 
 export default function Security({ passwordRules }: Props) {
     return (

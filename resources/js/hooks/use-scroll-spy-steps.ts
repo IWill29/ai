@@ -30,8 +30,10 @@ export function useScrollSpySteps(itemCount: number): {
                     return;
                 }
 
-                const best = visible.reduce((current, entry) =>
-                    entry.intersectionRatio > current.intersectionRatio ? entry : current,
+                const best = visible.reduce(
+                    (current, entry) =>
+                        entry.intersectionRatio > current.intersectionRatio ? entry : current,
+                    visible[0],
                 );
 
                 const index = elements.indexOf(best.target as HTMLElement);

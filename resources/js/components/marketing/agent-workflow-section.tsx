@@ -21,9 +21,9 @@ export type AgentStep = {
     kind: 'setup' | 'chat' | 'read' | 'trace' | 'write';
 };
 
-type Props = {
+type Props = Readonly<{
     steps: AgentStep[];
-};
+}>;
 
 const KIND_META: Record<
     AgentStep['kind'],
@@ -56,6 +56,16 @@ const KIND_META: Record<
     },
 };
 
+type WorkflowStepProps = Readonly<{
+    step: AgentStep;
+    index: number;
+    isLast: boolean;
+    inView: boolean;
+    isActive: boolean;
+    onActivate: () => void;
+    stepRef: (element: HTMLElement | null) => void;
+}>;
+
 function WorkflowStep({
     step,
     index,
@@ -64,15 +74,7 @@ function WorkflowStep({
     isActive,
     onActivate,
     stepRef,
-}: {
-    step: AgentStep;
-    index: number;
-    isLast: boolean;
-    inView: boolean;
-    isActive: boolean;
-    onActivate: () => void;
-    stepRef: (element: HTMLElement | null) => void;
-}) {
+}: WorkflowStepProps) {
     const meta = KIND_META[step.kind];
     const Icon = meta.icon;
 
@@ -157,15 +159,13 @@ function WorkflowStep({
     );
 }
 
-function MobileMockupPanel({
-    steps,
-    activeIndex,
-    inView,
-}: {
+type MockupPanelProps = Readonly<{
     steps: AgentStep[];
     activeIndex: number;
     inView: boolean;
-}) {
+}>;
+
+function MobileMockupPanel({ steps, activeIndex, inView }: MockupPanelProps) {
     const activeStep = steps[activeIndex] ?? steps[0];
 
     if (!activeStep) {
@@ -191,15 +191,7 @@ function MobileMockupPanel({
     );
 }
 
-function StickyMockupPanel({
-    steps,
-    activeIndex,
-    inView,
-}: {
-    steps: AgentStep[];
-    activeIndex: number;
-    inView: boolean;
-}) {
+function StickyMockupPanel({ steps, activeIndex, inView }: MockupPanelProps) {
     const activeStep = steps[activeIndex] ?? steps[0];
 
     if (!activeStep) {

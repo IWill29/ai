@@ -1,7 +1,7 @@
-type Props = {
+type Props = Readonly<{
     title: string;
     description?: string;
-};
+}>;
 
 export default function SectionHeading({ title, description }: Props) {
     return (

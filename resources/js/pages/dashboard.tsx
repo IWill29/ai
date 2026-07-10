@@ -125,19 +125,15 @@ function TableSkeleton() {
     );
 }
 
-function KpiCard({
-    title,
-    value,
-    subtitle,
-    icon: Icon,
-    children,
-}: {
+type KpiCardProps = Readonly<{
     title: string;
     value: string | number;
     subtitle?: string;
     icon: typeof TrendingUp;
     children?: React.ReactNode;
-}) {
+}>;
+
+function KpiCard({ title, value, subtitle, icon: Icon, children }: KpiCardProps) {
     return (
         <Card className={dashboardCardClass}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -153,19 +149,21 @@ function KpiCard({
     );
 }
 
+type ActionableKpiCardProps = Readonly<{
+    title: string;
+    value: string | number;
+    chatPrompt: string;
+    storeId: string;
+    icon: typeof Package;
+}>;
+
 function ActionableKpiCard({
     title,
     value,
     chatPrompt,
     storeId,
     icon: Icon,
-}: {
-    title: string;
-    value: string | number;
-    chatPrompt: string;
-    storeId: string;
-    icon: typeof Package;
-}) {
+}: ActionableKpiCardProps) {
     const openChat = () => {
         router.get('/chat', {
             store_id: storeId,
@@ -353,15 +351,13 @@ function RecentOrdersTable() {
     );
 }
 
-function DashboardFilters({
-    stores,
-    filters,
-    onChange,
-}: {
+type DashboardFiltersProps = Readonly<{
     stores: StoreItem[];
     filters: Filters;
     onChange: (next: Partial<Filters>) => void;
-}) {
+}>;
+
+function DashboardFilters({ stores, filters, onChange }: DashboardFiltersProps) {
     return (
         <div className="flex flex-wrap items-center gap-3">
             <Select

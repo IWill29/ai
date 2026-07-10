@@ -83,7 +83,7 @@ function fullLogoSvg({ dark = false }) {
 </svg>`;
 }
 
-async function main() {
+try {
     const { exportBrandKit, optimizeSvg, textToPath } = await loadLogoloomTools();
 
     const iconLight = iconSvg({ dark: false });
@@ -114,9 +114,7 @@ async function main() {
     writeFileSync(join(outputDir, 'export-result.json'), JSON.stringify(exportResult, null, 2));
 
     console.log('AgentStore brand kit exported:', exportResult.files?.length ?? 0, 'files');
-}
-
-main().catch((error) => {
+} catch (error) {
     console.error(error);
     process.exit(1);
-});
+}

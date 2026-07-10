@@ -19,10 +19,10 @@ const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
 export default function AppearanceToggle({
     className,
     showLabels = true,
-}: {
+}: Readonly<{
     className?: string;
     showLabels?: boolean;
-}) {
+}>) {
     const { appearance, updateAppearance } = useAppearance();
     const activeIndex = Math.max(
         0,

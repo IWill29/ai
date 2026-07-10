@@ -5,10 +5,13 @@ use Pdo\Mysql;
 
 $runningInDocker = file_exists('/.dockerenv');
 
-$postgresHost = env('DB_HOST', '127.0.0.1');
+$loopbackHost = '127.0.0.1';
+$loopbackHosts = [$loopbackHost, 'localhost'];
+
+$postgresHost = env('DB_HOST', $loopbackHost);
 $postgresPort = env('DB_PORT', '5432');
 
-if ($runningInDocker && in_array($postgresHost, ['127.0.0.1', 'localhost'], true)) {
+if ($runningInDocker && in_array($postgresHost, $loopbackHosts, true)) {
     $postgresHost = 'pgsql';
 }
 
@@ -16,9 +19,9 @@ if ($runningInDocker && $postgresPort === '5434') {
     $postgresPort = '5432';
 }
 
-$redisHost = env('REDIS_HOST', '127.0.0.1');
+$redisHost = env('REDIS_HOST', $loopbackHost);
 
-if ($runningInDocker && in_array($redisHost, ['127.0.0.1', 'localhost'], true)) {
+if ($runningInDocker && in_array($redisHost, $loopbackHosts, true)) {
     $redisHost = 'redis';
 }
 
@@ -66,7 +69,7 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => env('DB_HOST', $loopbackHost),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
@@ -86,7 +89,7 @@ return [
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => env('DB_HOST', $loopbackHost),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),

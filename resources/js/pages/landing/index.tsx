@@ -17,12 +17,12 @@ type FaqItem = {
     a: string;
 };
 
-type Props = {
+type Props = Readonly<{
     plans: PlanRow[];
     faqs: FaqItem[];
     agentSteps: AgentStep[];
     canonicalUrl: string;
-};
+}>;
 
 const META_DESCRIPTION =
     'Connect Shopify, sync your catalog, and run store operations with AI. Dashboard KPIs, chat with confirmation before every write, and BYOK via OpenRouter.';

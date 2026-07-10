@@ -13,9 +13,9 @@ import { cn } from '@/lib/utils';
 const cardClass =
     'rounded-2xl border-border/60 bg-card shadow-[0_4px_20px_-2px_rgb(0_0_0/0.08)] dark:border-border/80 dark:shadow-[0_8px_32px_-8px_rgb(0_0_0/0.55)]';
 
-type Props = {
+type Props = Readonly<{
     passwordRules: string;
-};
+}>;
 
 export default function SecurityPasswordPanel({ passwordRules }: Props) {
     const passwordInput = useRef<HTMLInputElement>(null);

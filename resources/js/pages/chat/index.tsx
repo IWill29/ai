@@ -8,8 +8,11 @@ import { index as chatIndex } from '@/routes/chat';
 
 type StoreSyncProps = ChatStoreSyncState;
 
-type Props = {
+type ChatPageContentProps = {
     storeSync: StoreSyncProps | null;
+};
+
+type ChatIndexProps = ChatPageContentProps & {
     prefillPrompt?: string | null;
 };
 
@@ -18,7 +21,7 @@ type LiveSyncOverride = Pick<
     'state' | 'entity' | 'error' | 'lastSyncedAt' | 'status'
 >;
 
-function ChatPageContent({ storeSync }: Props) {
+function ChatPageContent({ storeSync }: ChatPageContentProps) {
     const [liveSync, setLiveSync] = useState<LiveSyncOverride | null>(null);
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
@@ -117,11 +120,11 @@ function ChatPageContent({ storeSync }: Props) {
     );
 }
 
-export default function ChatIndex(props: Props) {
+export default function ChatIndex(props: ChatIndexProps) {
     return (
         <ChatPageContent
             key={`${props.storeSync?.connectionId ?? 'no-store'}-${props.prefillPrompt ?? ''}`}
-            {...props}
+            storeSync={props.storeSync}
         />
     );
 }

@@ -79,9 +79,9 @@ export const CONNECT_GUIDE_STEPS: ConnectGuideStep[] = [
     },
 ];
 
-type ConnectOnboardingGuideProps = {
+type ConnectOnboardingGuideProps = Readonly<{
     onReadyForCredentials?: () => void;
-};
+}>;
 
 export default function ConnectOnboardingGuide({
     onReadyForCredentials,
@@ -136,19 +136,18 @@ export default function ConnectOnboardingGuide({
                     </p>
                 </div>
 
-                <div
-                    className="h-1.5 overflow-hidden rounded-full bg-muted"
-                    role="progressbar"
-                    aria-valuenow={Math.round(progress)}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
+                <progress
+                    className={cn(
+                        'h-1.5 w-full overflow-hidden rounded-full',
+                        '[&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-muted',
+                        '[&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-indigo-500',
+                        'motion-safe:[&::-webkit-progress-value]:transition-[width] motion-safe:[&::-webkit-progress-value]:duration-300',
+                        'motion-safe:[&::-webkit-progress-value]:ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:[&::-webkit-progress-value]:transition-none',
+                    )}
+                    value={Math.min(100, progress)}
+                    max={100}
                     aria-label="Setup progress"
-                >
-                    <div
-                        className="h-full rounded-full bg-indigo-500 transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
-                        style={{ width: `${Math.min(100, progress)}%` }}
-                    />
-                </div>
+                />
             </CardHeader>
 
             <CardContent className="grid gap-6 p-0 md:grid-cols-[minmax(0,13rem)_1fr]">

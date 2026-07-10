@@ -13,10 +13,10 @@ import type { NavItem } from '@/types';
 export function NavMain({
     items = [],
     label = 'Platform',
-}: {
+}: Readonly<{
     items?: NavItem[];
     label?: string;
-}) {
+}>) {
     const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
 
     return (

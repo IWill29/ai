@@ -9,12 +9,12 @@ const frameClass =
 const panelClass =
     'rounded-xl border border-border/50 bg-muted/20 p-3 text-xs sm:text-sm';
 
-type Props = {
+type Props = Readonly<{
     kind: AgentStepKind;
     className?: string;
-};
+}>;
 
-function WindowChrome({ title }: { title: string }) {
+function WindowChrome({ title }: Readonly<{ title: string }>) {
     return (
         <div className="flex items-center gap-1.5 border-b border-border/50 bg-muted/25 px-3 py-2">
             <span className="size-2 rounded-full bg-red-400/70" />

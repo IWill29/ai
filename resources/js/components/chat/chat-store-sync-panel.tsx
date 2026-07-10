@@ -32,11 +32,11 @@ function entityLabel(entity: string | null): string {
     return entity.charAt(0).toUpperCase() + entity.slice(1);
 }
 
-type Props = {
+type Props = Readonly<{
     syncState: ChatStoreSyncState;
     syncMessage: string | null;
     onSync: () => void;
-};
+}>;
 
 export default function ChatStoreSyncPanel({ syncState, syncMessage, onSync }: Props) {
     return (
