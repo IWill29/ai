@@ -18,7 +18,7 @@ use App\Domains\Chat\Contracts\ChatService;
 use App\Domains\Chat\Services\DefaultChatService;
 use App\Domains\Chat\Services\StubAttachmentUploadService;
 use App\Domains\Dashboard\Contracts\MetricsReader;
-use App\Domains\Dashboard\Services\SyncedMetricsReader;
+use App\Domains\Dashboard\Services\SyncedMetricsReaderAdapter;
 use App\Domains\Stores\Contracts\StoreAdapterFactory;
 use App\Domains\Stores\Services\StoreAdapterManager;
 use Tests\TestCase;
@@ -67,6 +67,6 @@ class DomainContractBindingsTest extends TestCase
 
     public function test_metrics_reader_resolves(): void
     {
-        $this->assertInstanceOf(SyncedMetricsReader::class, app(MetricsReader::class));
+        $this->assertInstanceOf(SyncedMetricsReaderAdapter::class, app(MetricsReader::class));
     }
 }

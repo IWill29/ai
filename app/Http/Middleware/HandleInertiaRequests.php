@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domains\Stores\Models\StoreConnection;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -46,6 +47,10 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'hasConnectedStores' => fn () => $request->user() !== null
+                && StoreConnection::query()
+                    ->where('account_id', $request->user()->account_id)
+                    ->exists(),
         ];
     }
 }

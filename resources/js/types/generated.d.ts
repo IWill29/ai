@@ -95,6 +95,41 @@ namespace Enums {
 export type MessageRole = 'user' | 'assistant' | 'system' | 'tool';
 }
 }
+namespace Dashboard {
+namespace DTOs {
+export type DashboardMetricsDTO = {
+readonly revenueMinor: number,
+readonly revenueChangePercent: number,
+readonly ordersCount: number,
+readonly ordersChangePercent: number,
+readonly averageOrderValueMinor: number,
+readonly newCustomers: number,
+readonly returningCustomers: number,
+readonly unfulfilledOrders: number,
+readonly lowStockProducts: number,
+readonly outOfStockProducts: number,
+readonly currency: string,
+readonly from: undefined,
+readonly to: undefined,
+};
+export type RecentOrderRowDTO = {
+readonly externalId: string,
+readonly orderNumber: string | null,
+readonly totalPriceMinor: number,
+readonly currency: string,
+readonly financialStatus: string | null,
+readonly fulfillmentStatus: string | null,
+readonly placedAt: undefined,
+};
+export type TopProductRowDTO = {
+readonly externalId: string,
+readonly title: string,
+readonly unitsSold: number,
+readonly revenueMinor: number,
+readonly currency: string,
+};
+}
+}
 namespace Stores {
 namespace DTOs {
 export type CustomerDTO = {
@@ -137,6 +172,7 @@ export type OrderQuery = {
 readonly fulfillmentStatus: string | null,
 readonly financialStatus: string | null,
 readonly placedAfter: undefined | null,
+readonly updatedSince: undefined | null,
 readonly minTotalMinor: number | null,
 readonly search: string | null,
 readonly limit: number,

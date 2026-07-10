@@ -3,6 +3,25 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+$runningInDocker = file_exists('/.dockerenv');
+
+$postgresHost = env('DB_HOST', '127.0.0.1');
+$postgresPort = env('DB_PORT', '5432');
+
+if ($runningInDocker && in_array($postgresHost, ['127.0.0.1', 'localhost'], true)) {
+    $postgresHost = 'pgsql';
+}
+
+if ($runningInDocker && $postgresPort === '5434') {
+    $postgresPort = '5432';
+}
+
+$redisHost = env('REDIS_HOST', '127.0.0.1');
+
+if ($runningInDocker && in_array($redisHost, ['127.0.0.1', 'localhost'], true)) {
+    $redisHost = 'redis';
+}
+
 return [
 
     /*
@@ -87,8 +106,8 @@ return [
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
+            'host' => $postgresHost,
+            'port' => $postgresPort,
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
@@ -155,7 +174,7 @@ return [
 
         'default' => [
             'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'host' => $redisHost,
             'username' => env('REDIS_USERNAME'),
             'password' => env('REDIS_PASSWORD'),
             'port' => env('REDIS_PORT', '6379'),
@@ -168,7 +187,7 @@ return [
 
         'cache' => [
             'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'host' => $redisHost,
             'username' => env('REDIS_USERNAME'),
             'password' => env('REDIS_PASSWORD'),
             'port' => env('REDIS_PORT', '6379'),

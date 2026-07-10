@@ -21,9 +21,7 @@ class ConnectStoreController extends Controller
     {
         $this->authorize('create', StoreConnection::class);
 
-        return Inertia::render('stores/connect', [
-            'scopes' => config('shopify.scopes', []),
-        ]);
+        return Inertia::render('stores/connect');
     }
 
     public function store(
