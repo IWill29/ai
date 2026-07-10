@@ -1,12 +1,12 @@
 import { Link } from '@inertiajs/react';
 import { Menu } from 'lucide-react';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import AppLogo from '@/components/app-logo';
-import AppearanceToggle from '@/components/appearance-toggle';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { login } from '@/routes';
-import { register } from '@/routes';
+import { MARKETING_ROUTES } from '@/lib/marketing-routes';
+
+const AppearanceToggle = lazy(() => import('@/components/appearance-toggle'));
 
 const NAV_LINKS = [
     { href: '#features', label: 'Features' },
@@ -19,7 +19,7 @@ export default function SiteHeader() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <header className="sticky top-0 z-50 border-b border-border/40 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+        <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 md:bg-background/85 md:backdrop-blur-md md:supports-[backdrop-filter]:bg-background/70">
             <div className="mx-auto flex h-14 max-w-[var(--landing-max-width)] items-center justify-between gap-4 px-4 md:h-16 md:px-6">
                 <Link href="/" className="min-w-0 shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <AppLogo />
@@ -41,13 +41,25 @@ export default function SiteHeader() {
                 </nav>
 
                 <div className="flex items-center gap-2">
-                    <AppearanceToggle showLabels={false} className="hidden sm:inline-grid" />
+                    <Suspense fallback={<div className="hidden size-9 sm:block" aria-hidden />}>
+                        <AppearanceToggle showLabels={false} className="hidden sm:inline-grid" />
+                    </Suspense>
 
                     <Button variant="ghost" asChild className="hidden rounded-xl sm:inline-flex">
-                        <Link href={login()}>Log in</Link>
+                        <Link href={MARKETING_ROUTES.login} prefetch>
+                            Log in
+                        </Link>
                     </Button>
                     <Button asChild variant="brand" className="hidden rounded-full sm:inline-flex">
-                        <Link href={register()}>Get started</Link>
+                        <Link href={MARKETING_ROUTES.register} prefetch>
+                            Get started
+                        </Link>
+                    </Button>
+
+                    <Button asChild variant="brand" size="sm" className="rounded-full sm:hidden">
+                        <Link href={MARKETING_ROUTES.register} prefetch>
+                            Start
+                        </Link>
                     </Button>
 
                     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -78,14 +90,16 @@ export default function SiteHeader() {
                                 ))}
                             </nav>
                             <div className="mt-6 flex flex-col gap-2 border-t border-border/50 pt-6">
-                                <AppearanceToggle className="w-full" />
+                                <Suspense fallback={null}>
+                                    <AppearanceToggle className="w-full" />
+                                </Suspense>
                                 <Button variant="outline" asChild className="rounded-xl">
-                                    <Link href={login()} onClick={() => setMobileOpen(false)}>
+                                    <Link href={MARKETING_ROUTES.login} onClick={() => setMobileOpen(false)}>
                                         Log in
                                     </Link>
                                 </Button>
                                 <Button asChild variant="brand" className="rounded-full">
-                                    <Link href={register()} onClick={() => setMobileOpen(false)}>
+                                    <Link href={MARKETING_ROUTES.register} onClick={() => setMobileOpen(false)}>
                                         Get started
                                     </Link>
                                 </Button>

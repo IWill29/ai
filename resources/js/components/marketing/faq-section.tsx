@@ -15,7 +15,7 @@ export default function FaqSection({ faqs }: Props) {
     const { ref, inView } = useInViewOnce<HTMLElement>();
 
     return (
-        <section id="faq" ref={ref} className="scroll-mt-20 px-4 py-16 md:py-24">
+        <section id="faq" ref={ref} className="scroll-mt-20 px-4 py-14 sm:py-16 md:py-24">
             <div className="mx-auto max-w-3xl">
                 <SectionHeading title="Frequently asked questions" />
 
@@ -25,9 +25,9 @@ export default function FaqSection({ faqs }: Props) {
                             key={q}
                             className={cn(
                                 'group rounded-2xl border border-border/60 bg-card/50 px-4 py-1 open:border-indigo-500/25 open:bg-card/80 open:shadow-sm',
-                                inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2',
-                                'motion-safe:transition-[opacity,transform,border-color,background-color] motion-safe:duration-500',
-                                'motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:transition-none',
+                                inView ? 'opacity-100' : 'opacity-0',
+                                'motion-safe:transition-[opacity,border-color,background-color] motion-safe:duration-500',
+                                'motion-reduce:opacity-100 motion-reduce:transition-none',
                             )}
                             style={{
                                 transitionTimingFunction: 'var(--ease-out-strong)',

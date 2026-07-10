@@ -6,9 +6,9 @@ type Props = {
 export default function SectionHeading({ title, description }: Props) {
     return (
         <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{title}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">{title}</h2>
             {description && (
-                <p className="mt-3 text-base leading-relaxed text-muted-foreground md:text-lg">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base md:text-lg">
                     {description}
                 </p>
             )}

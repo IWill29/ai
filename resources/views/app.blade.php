@@ -34,15 +34,36 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-        @fonts
+        <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+        <link
+            rel="preload"
+            as="style"
+            href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=optional"
+            onload="this.onload=null;this.rel='stylesheet'"
+        >
+        <noscript>
+            <link
+                rel="stylesheet"
+                href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=optional"
+            >
+        </noscript>
 
         @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @php($isLanding = ($page['component'] ?? '') === 'landing/index')
+        @if ($isLanding)
+            @vite(['resources/css/landing.css', 'resources/js/marketing.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @else
+            @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @endif
         <x-inertia::head>
             <title>{{ config('app.name', 'Laravel') }}</title>
         </x-inertia::head>
     </head>
-    <body class="font-sans antialiased">
+    <body @class([
+        'font-sans antialiased',
+        'landing-loading' => ($page['component'] ?? '') === 'landing/index',
+    ])>
+        @include('partials.landing-lcp')
         <x-inertia::app />
     </body>
 </html>

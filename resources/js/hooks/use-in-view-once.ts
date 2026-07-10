@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 
-export function useInViewOnce<T extends Element = HTMLDivElement>(threshold = 0.12): {
+export function useInViewOnce<T extends Element = HTMLDivElement>(
+    threshold = 0.12,
+    rootMargin = '0px',
+): {
     ref: RefObject<T | null>;
     inView: boolean;
 } {
@@ -21,13 +24,13 @@ export function useInViewOnce<T extends Element = HTMLDivElement>(threshold = 0.
                     observer.disconnect();
                 }
             },
-            { threshold },
+            { threshold, rootMargin },
         );
 
         observer.observe(element);
 
         return () => observer.disconnect();
-    }, [inView, threshold]);
+    }, [inView, rootMargin, threshold]);
 
     return { ref, inView };
 }

@@ -1,11 +1,15 @@
 import { Head } from '@inertiajs/react';
-import type { ReactNode } from 'react';
-import AgentWorkflowSection, { type AgentStep } from '@/components/marketing/agent-workflow-section';
-import FaqSection from '@/components/marketing/faq-section';
-import FeaturesSection from '@/components/marketing/features-section';
+import { lazy, Suspense, type ReactNode } from 'react';
 import HeroSection from '@/components/marketing/hero-section';
-import PricingSection, { type PlanRow } from '@/components/marketing/pricing-section';
+import SectionPlaceholder from '@/components/marketing/section-placeholder';
 import MarketingLayout from '@/layouts/marketing-layout';
+import type { AgentStep } from '@/components/marketing/agent-workflow-section';
+import type { PlanRow } from '@/components/marketing/pricing-section';
+
+const FeaturesSection = lazy(() => import('@/components/marketing/features-section'));
+const AgentWorkflowSection = lazy(() => import('@/components/marketing/agent-workflow-section'));
+const PricingSection = lazy(() => import('@/components/marketing/pricing-section'));
+const FaqSection = lazy(() => import('@/components/marketing/faq-section'));
 
 type FaqItem = {
     q: string;
@@ -21,6 +25,16 @@ type Props = {
 
 const META_DESCRIPTION =
     'Connect Shopify, sync your catalog, and run store operations with AI. Dashboard KPIs, chat with confirmation before every write, and BYOK via OpenRouter.';
+
+const SPECULATION_RULES = JSON.stringify({
+    prefetch: [
+        {
+            source: 'list',
+            urls: ['/register', '/login'],
+            eagerness: 'moderate',
+        },
+    ],
+});
 
 function faqJsonLd(faqs: FaqItem[]): string {
     return JSON.stringify({
@@ -51,6 +65,11 @@ export default function LandingIndex({ plans, faqs, agentSteps, canonicalUrl }: 
                 <meta head-key="og:type" property="og:type" content="website" />
                 <meta head-key="og:url" property="og:url" content={canonicalUrl} />
                 <link head-key="canonical" rel="canonical" href={canonicalUrl} />
+                <script
+                    head-key="speculation-rules"
+                    type="speculationrules"
+                    dangerouslySetInnerHTML={{ __html: SPECULATION_RULES }}
+                />
                 {faqs.length > 0 && (
                     <script
                         head-key="faq-jsonld"
@@ -61,10 +80,28 @@ export default function LandingIndex({ plans, faqs, agentSteps, canonicalUrl }: 
             </Head>
 
             <HeroSection />
-            <FeaturesSection />
-            {agentSteps.length > 0 && <AgentWorkflowSection steps={agentSteps} />}
-            {plans.length > 0 && <PricingSection plans={plans} />}
-            {faqs.length > 0 && <FaqSection faqs={faqs} />}
+
+            <Suspense fallback={<SectionPlaceholder minHeight="28rem" />}>
+                <FeaturesSection />
+            </Suspense>
+
+            {agentSteps.length > 0 && (
+                <Suspense fallback={<SectionPlaceholder minHeight="36rem" />}>
+                    <AgentWorkflowSection steps={agentSteps} />
+                </Suspense>
+            )}
+
+            {plans.length > 0 && (
+                <Suspense fallback={<SectionPlaceholder minHeight="24rem" />}>
+                    <PricingSection plans={plans} />
+                </Suspense>
+            )}
+
+            {faqs.length > 0 && (
+                <Suspense fallback={<SectionPlaceholder minHeight="20rem" />}>
+                    <FaqSection faqs={faqs} />
+                </Suspense>
+            )}
         </>
     );
 }

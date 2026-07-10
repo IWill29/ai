@@ -7,10 +7,13 @@ use App\Http\Controllers\Settings\OpenRouterController;
 use App\Http\Controllers\Stores\ConnectStoreController;
 use App\Http\Controllers\Stores\StoreController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
+use App\Http\Middleware\CacheLandingResponse;
 use App\Http\Middleware\VerifyShopifyWebhook;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [LandingController::class, 'index'])->name('home');
+Route::get('/', [LandingController::class, 'index'])
+    ->middleware(CacheLandingResponse::class)
+    ->name('home');
 
 Route::post('/webhooks/shopify/{storeConnectionId}', [ShopifyWebhookController::class, 'handle'])
     ->middleware(VerifyShopifyWebhook::class)

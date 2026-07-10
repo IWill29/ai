@@ -3,6 +3,33 @@
 declare(strict_types=1);
 
 return [
+    'plans' => [
+        [
+            'slug' => 'free',
+            'name' => 'Free',
+            'price_cents' => 0,
+            'currency' => 'EUR',
+            'store_limit' => 1,
+            'monthly_message_limit' => 100,
+        ],
+        [
+            'slug' => 'pro',
+            'name' => 'Pro',
+            'price_cents' => 1900,
+            'currency' => 'EUR',
+            'store_limit' => 3,
+            'monthly_message_limit' => 1000,
+        ],
+        [
+            'slug' => 'business',
+            'name' => 'Business',
+            'price_cents' => 4900,
+            'currency' => 'EUR',
+            'store_limit' => null,
+            'monthly_message_limit' => null,
+        ],
+    ],
+
     'agent_steps' => [
         [
             'title' => 'Connect & sync Shopify',

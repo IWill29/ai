@@ -80,9 +80,9 @@ function WorkflowStep({
             ref={stepRef}
             className={cn(
                 'relative grid grid-cols-[auto_1fr] gap-x-4 sm:gap-x-6',
-                inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-                'motion-safe:transition-[opacity,transform] motion-safe:duration-500',
-                'motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:transition-none',
+                inView ? 'opacity-100' : 'opacity-0',
+                'motion-safe:transition-opacity motion-safe:duration-500',
+                'motion-reduce:opacity-100 motion-reduce:transition-none',
             )}
             style={{
                 transitionTimingFunction: 'var(--ease-out-strong)',
@@ -151,12 +151,42 @@ function WorkflowStep({
                         ))}
                     </ul>
                 )}
-
-                <div className="mt-4 lg:hidden">
-                    <AgentStepMockup kind={step.kind} />
-                </div>
             </div>
         </li>
+    );
+}
+
+function MobileMockupPanel({
+    steps,
+    activeIndex,
+    inView,
+}: {
+    steps: AgentStep[];
+    activeIndex: number;
+    inView: boolean;
+}) {
+    const activeStep = steps[activeIndex] ?? steps[0];
+
+    if (!activeStep) {
+        return null;
+    }
+
+    return (
+        <div
+            className={cn(
+                'mb-8 lg:hidden',
+                inView ? 'opacity-100' : 'opacity-0',
+                'motion-safe:transition-opacity motion-safe:duration-500',
+                'motion-reduce:opacity-100',
+            )}
+            aria-live="polite"
+            aria-label={`Preview: ${activeStep.title}`}
+        >
+            <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Live preview · Step {activeIndex + 1} of {steps.length}
+            </p>
+            <AgentStepMockup kind={activeStep.kind} />
+        </div>
     );
 }
 
@@ -189,24 +219,8 @@ function StickyMockupPanel({
             <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
                 Live preview · Step {activeIndex + 1} of {steps.length}
             </p>
-            <div className="relative min-h-[22rem]">
-                {steps.map((step, index) => (
-                    <div
-                        key={step.title}
-                        className={cn(
-                            'absolute inset-0',
-                            index === activeIndex
-                                ? 'pointer-events-auto z-10 opacity-100 translate-y-0'
-                                : 'pointer-events-none z-0 opacity-0 translate-y-2',
-                            'motion-safe:transition-[opacity,transform] motion-safe:duration-400',
-                            'motion-reduce:transition-none',
-                        )}
-                        style={{ transitionTimingFunction: 'var(--ease-out-strong)' }}
-                        aria-hidden={index !== activeIndex}
-                    >
-                        <AgentStepMockup kind={step.kind} />
-                    </div>
-                ))}
+            <div className="relative min-h-[20rem] sm:min-h-[22rem]">
+                <AgentStepMockup key={activeStep.kind} kind={activeStep.kind} />
             </div>
         </div>
     );
@@ -220,7 +234,7 @@ export default function AgentWorkflowSection({ steps }: Props) {
         <section
             id="how-it-works"
             ref={ref}
-            className="scroll-mt-20 border-y border-border/40 bg-muted/15 px-4 py-16 md:py-24"
+            className="scroll-mt-20 border-y border-border/40 bg-muted/15 px-4 py-14 sm:py-16 md:py-24"
         >
             <div className="mx-auto max-w-[var(--landing-max-width)]">
                 <SectionHeading
@@ -228,7 +242,9 @@ export default function AgentWorkflowSection({ steps }: Props) {
                     description="Scroll through each step — the preview updates so you can see exactly what happens in the app."
                 />
 
-                <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+                <MobileMockupPanel steps={steps} activeIndex={activeIndex} inView={inView} />
+
+                <div className="mt-8 grid gap-8 sm:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
                     <ol className="relative list-none pl-0">
                         {steps.map((step, index) => (
                             <WorkflowStep

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInViewOnce } from '@/hooks/use-in-view-once';
 import { cn } from '@/lib/utils';
-import { register } from '@/routes';
+import { MARKETING_ROUTES } from '@/lib/marketing-routes';
 
 export type PlanRow = {
     slug: string;
@@ -52,14 +52,14 @@ export default function PricingSection({ plans }: Props) {
     const { ref, inView } = useInViewOnce<HTMLElement>();
 
     return (
-        <section id="pricing" ref={ref} className="scroll-mt-20 px-4 py-16 md:py-24">
+        <section id="pricing" ref={ref} className="scroll-mt-20 px-4 py-14 sm:py-16 md:py-24">
             <div className="mx-auto max-w-[var(--landing-max-width)]">
                 <SectionHeading
                     title="Simple, flat pricing"
                     description="AI usage is BYOK — you pay OpenRouter directly. Plans cover the AgentStore platform."
                 />
 
-                <ul className="mt-12 grid list-none gap-6 pl-0 md:grid-cols-3">
+                <ul className="mt-10 grid list-none gap-4 pl-0 sm:mt-12 sm:gap-6 md:grid-cols-3">
                     {plans.map((plan, index) => {
                         const highlighted = plan.slug === 'pro';
 
@@ -67,9 +67,9 @@ export default function PricingSection({ plans }: Props) {
                             <li
                                 key={plan.slug}
                                 className={cn(
-                                    inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-                                    'motion-safe:transition-[opacity,transform] motion-safe:duration-500',
-                                    'motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:transition-none',
+                                    inView ? 'opacity-100' : 'opacity-0',
+                                    'motion-safe:transition-opacity motion-safe:duration-500',
+                                    'motion-reduce:opacity-100 motion-reduce:transition-none',
                                 )}
                                 style={{
                                     transitionTimingFunction: 'var(--ease-out-strong)',
@@ -110,7 +110,7 @@ export default function PricingSection({ plans }: Props) {
                                             variant={highlighted ? 'brand' : 'outline'}
                                             className="w-full rounded-full active:scale-[0.97] motion-reduce:active:scale-100"
                                         >
-                                            <Link href={register()}>
+                                            <Link href={MARKETING_ROUTES.register}>
                                                 {plan.slug === 'free'
                                                     ? 'Get started free'
                                                     : 'Get started'}

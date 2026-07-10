@@ -1,17 +1,16 @@
 import {
     ArrowUpRight,
-    CreditCard,
     LayoutGrid,
     MessageSquare,
     Package,
     Plus,
     ShoppingCart,
-    Sparkles,
     Store,
     TrendingUp,
 } from 'lucide-react';
 import { useEffect, useState, type CSSProperties } from 'react';
 import AppLogo from '@/components/app-logo';
+import { useInViewOnce } from '@/hooks/use-in-view-once';
 import { cn } from '@/lib/utils';
 
 const dashboardCardClass =
@@ -46,11 +45,26 @@ function usePrefersReducedMotion(): boolean {
     return reduced;
 }
 
-function useDemoPhase(reducedMotion: boolean): DemoPhase {
+function usePageVisible(): boolean {
+    const [visible, setVisible] = useState(
+        typeof document === 'undefined' ? true : document.visibilityState === 'visible',
+    );
+
+    useEffect(() => {
+        const onVisibility = (): void => setVisible(document.visibilityState === 'visible');
+        document.addEventListener('visibilitychange', onVisibility);
+
+        return () => document.removeEventListener('visibilitychange', onVisibility);
+    }, []);
+
+    return visible;
+}
+
+function useDemoPhase(reducedMotion: boolean, enabled: boolean): DemoPhase {
     const [phase, setPhase] = useState<DemoPhase>(reducedMotion ? 'tool-trace' : 'kpis');
 
     useEffect(() => {
-        if (reducedMotion) {
+        if (reducedMotion || !enabled) {
             return;
         }
 
@@ -75,7 +89,7 @@ function useDemoPhase(reducedMotion: boolean): DemoPhase {
         timeoutId = window.setTimeout(advance, steps[0][1]);
 
         return () => window.clearTimeout(timeoutId);
-    }, [reducedMotion]);
+    }, [enabled, reducedMotion]);
 
     return phase;
 }
@@ -137,7 +151,7 @@ function MockSidebar() {
         );
 
     return (
-        <aside className="hidden w-44 shrink-0 flex-col border-r border-border/60 bg-sidebar/40 p-3 md:flex lg:w-48 lg:p-4">
+        <aside className="hidden w-40 shrink-0 flex-col border-r border-border/60 bg-sidebar/40 p-3 md:flex lg:w-48 lg:p-4">
             <div className="mb-4">
                 <AppLogo compact />
             </div>
@@ -197,20 +211,20 @@ function MockKpiCard({
         <div
             className={cn(
                 dashboardCardClass,
-                'p-4 transition-[box-shadow,ring-color] duration-300 ease-out',
+                'p-3 transition-[box-shadow,ring-color] duration-300 ease-out sm:p-4',
                 highlighted && 'ring-2 ring-indigo-500/40 shadow-[0_8px_24px_-4px_rgb(99_102_241/0.2)]',
                 revealClass(visible),
             )}
             style={revealStyle(visible, delayMs)}
         >
             <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-medium text-muted-foreground">{title}</span>
-                <Icon className="size-4 text-indigo-500" />
+                <span className="text-[11px] font-medium text-muted-foreground sm:text-xs">{title}</span>
+                <Icon className="size-3.5 text-indigo-500 sm:size-4" />
             </div>
-            <p className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{value}</p>
-            {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
+            <p className="mt-1.5 text-lg font-semibold tracking-tight sm:mt-2 sm:text-2xl">{value}</p>
+            {subtitle && <p className="mt-0.5 text-[10px] text-muted-foreground sm:mt-1 sm:text-xs">{subtitle}</p>}
             {footer && (
-                <span className="mt-2 inline-flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400">
+                <span className="mt-1.5 inline-flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400 sm:mt-2 sm:text-[11px]">
                     {footer}
                     <ArrowUpRight className="size-3" />
                 </span>
@@ -234,12 +248,12 @@ function MockDashboard({
 
     return (
         <div className="flex min-w-0 flex-1 flex-col">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 px-4 py-3 sm:px-5">
-                <div>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
+                <div className="min-w-0">
                     <p className="text-sm font-semibold tracking-tight">Dashboard</p>
-                    <p className="text-xs text-muted-foreground">Demo Store · Last 7 days</p>
+                    <p className="truncate text-xs text-muted-foreground">Demo Store · Last 7 days</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="hidden items-center gap-2 sm:flex">
                     <div className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground">
                         Demo Store
                     </div>
@@ -249,8 +263,8 @@ function MockDashboard({
                 </div>
             </div>
 
-            <div className="space-y-4 p-4 sm:p-5">
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            <div className="space-y-3 p-3 sm:space-y-4 sm:p-5">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4 lg:gap-4">
                     <MockKpiCard
                         title="Revenue"
                         value={revenueDisplay}
@@ -278,7 +292,7 @@ function MockDashboard({
                     />
                     <MockKpiCard
                         title="Stock alerts"
-                        value="2 low / 1 out"
+                        value="2 low"
                         icon={Package}
                         visible
                         delayMs={240}
@@ -384,37 +398,77 @@ function MockChatPanel({ phase }: { phase: DemoPhase }) {
     );
 }
 
-export default function ChatMockup() {
-    const reducedMotion = usePrefersReducedMotion();
-    const phase = useDemoPhase(reducedMotion);
-    const revenueRaw = useCountUp(12480, true, 900);
-    const ordersCount = useCountUp(156, true, 850);
-    const revenueDisplay = `$${revenueRaw.toLocaleString()}`;
+function MockMobileChatStrip({ phase }: { phase: DemoPhase }) {
+    const userVisible = ['user-message', 'agent-message', 'tool-trace'].includes(phase);
+    const agentVisible = ['agent-message', 'tool-trace'].includes(phase);
 
     return (
         <div
+            className="border-t border-border/60 bg-muted/10 px-3 py-3 lg:hidden"
+            aria-hidden
+        >
+            <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold">Chat</p>
+                <span className="text-[10px] text-muted-foreground">GPT-4o mini</span>
+            </div>
+            <div className="space-y-2">
+                <div
+                    className={cn(
+                        'ml-auto max-w-[90%] rounded-xl rounded-tr-sm bg-indigo-500/15 px-2.5 py-1.5 text-[11px] ring-1 ring-indigo-500/20',
+                        userVisible ? 'opacity-100' : 'opacity-0',
+                        'motion-safe:transition-opacity motion-safe:duration-300 motion-reduce:opacity-100',
+                    )}
+                >
+                    Show unfulfilled orders
+                </div>
+                <div
+                    className={cn(
+                        'rounded-lg border border-border/50 bg-card/80 px-2.5 py-2 text-[11px]',
+                        agentVisible ? 'opacity-100' : 'opacity-0',
+                        'motion-safe:transition-opacity motion-safe:duration-300 motion-reduce:opacity-100',
+                    )}
+                >
+                    3 unfulfilled orders found
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function ChatMockup() {
+    const { ref, inView } = useInViewOnce<HTMLDivElement>(0.15, '100px');
+    const reducedMotion = usePrefersReducedMotion();
+    const pageVisible = usePageVisible();
+    const animationEnabled = inView && pageVisible && !reducedMotion;
+    const phase = useDemoPhase(reducedMotion, animationEnabled);
+    const revenueRaw = useCountUp(12480, animationEnabled, 900);
+    const ordersCount = useCountUp(156, animationEnabled, 850);
+    const revenueDisplay = `$${(animationEnabled ? revenueRaw : 12480).toLocaleString()}`;
+
+    return (
+        <div
+            ref={ref}
             aria-hidden
             className={cn(
-                'w-full overflow-hidden rounded-2xl border border-border/60 bg-card/90 shadow-[0_24px_80px_-12px_rgb(0_0_0/0.35)] backdrop-blur-sm sm:rounded-3xl',
-                'motion-safe:opacity-100 motion-safe:translate-y-0',
-                'motion-safe:transition-[opacity,transform] motion-safe:duration-500',
-                'motion-safe:starting:opacity-0 motion-safe:starting:translate-y-3',
+                'h-full w-full overflow-hidden rounded-2xl border border-border/60 bg-card/95 shadow-[0_24px_80px_-12px_rgb(0_0_0/0.35)] sm:rounded-3xl',
             )}
-            style={{ transitionTimingFunction: 'var(--ease-out-strong)' }}
         >
-            <div className="flex items-center gap-2 border-b border-border/50 bg-muted/20 px-4 py-2.5 sm:px-5">
-                <span className="size-2.5 rounded-full bg-red-400/70" />
-                <span className="size-2.5 rounded-full bg-amber-400/70" />
-                <span className="size-2.5 rounded-full bg-emerald-400/70" />
-                <span className="ml-1 truncate text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 border-b border-border/50 bg-muted/20 px-3 py-2 sm:px-5 sm:py-2.5">
+                <span className="size-2 rounded-full bg-red-400/70 sm:size-2.5" />
+                <span className="size-2 rounded-full bg-amber-400/70 sm:size-2.5" />
+                <span className="size-2 rounded-full bg-emerald-400/70 sm:size-2.5" />
+                <span className="ml-1 truncate text-[10px] text-muted-foreground sm:text-xs">
                     app.agentstore.io/dashboard
                 </span>
             </div>
 
-            <div className="flex min-h-[22rem] sm:min-h-[24rem] lg:min-h-[26rem]">
-                <MockSidebar />
-                <MockDashboard phase={phase} revenueDisplay={revenueDisplay} ordersCount={ordersCount} />
-                <MockChatPanel phase={phase} />
+            <div className="flex min-h-[22rem] flex-col lg:min-h-[26rem]">
+                <div className="flex min-h-0 flex-1">
+                    <MockSidebar />
+                    <MockDashboard phase={phase} revenueDisplay={revenueDisplay} ordersCount={ordersCount} />
+                    <MockChatPanel phase={phase} />
+                </div>
+                <MockMobileChatStrip phase={phase} />
             </div>
         </div>
     );

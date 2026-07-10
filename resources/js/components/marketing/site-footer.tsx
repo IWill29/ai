@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { login, register } from '@/routes';
+import { MARKETING_ROUTES } from '@/lib/marketing-routes';
 
 export default function SiteFooter() {
     const year = new Date().getFullYear();
@@ -45,12 +45,12 @@ export default function SiteFooter() {
                         <p className="font-medium">Account</p>
                         <ul className="space-y-2 text-muted-foreground">
                             <li>
-                                <Link href={login()} className="hover:text-foreground">
+                                <Link href={MARKETING_ROUTES.login} className="hover:text-foreground">
                                     Log in
                                 </Link>
                             </li>
                             <li>
-                                <Link href={register()} className="hover:text-foreground">
+                                <Link href={MARKETING_ROUTES.register} className="hover:text-foreground">
                                     Register
                                 </Link>
                             </li>

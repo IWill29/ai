@@ -15,6 +15,11 @@ services:
       mailpit:
         condition: service_started
     environment:
+      APP_URL: http://127.0.0.1:8000
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      INERTIA_SSR_ENABLED: "false"
       DB_CONNECTION: pgsql
       DB_HOST: pgsql
       DB_PORT: 5432
