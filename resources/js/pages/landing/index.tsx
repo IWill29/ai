@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import AgentWorkflowSection, { type AgentStep } from '@/components/marketing/agent-workflow-section';
 import FaqSection from '@/components/marketing/faq-section';
 import FeaturesSection from '@/components/marketing/features-section';
 import HeroSection from '@/components/marketing/hero-section';
@@ -14,6 +15,7 @@ type FaqItem = {
 type Props = {
     plans: PlanRow[];
     faqs: FaqItem[];
+    agentSteps: AgentStep[];
     canonicalUrl: string;
 };
 
@@ -35,7 +37,7 @@ function faqJsonLd(faqs: FaqItem[]): string {
     });
 }
 
-export default function LandingIndex({ plans, faqs, canonicalUrl }: Props) {
+export default function LandingIndex({ plans, faqs, agentSteps, canonicalUrl }: Props) {
     return (
         <>
             <Head title="Run your Shopify store with AI">
@@ -60,6 +62,7 @@ export default function LandingIndex({ plans, faqs, canonicalUrl }: Props) {
 
             <HeroSection />
             <FeaturesSection />
+            {agentSteps.length > 0 && <AgentWorkflowSection steps={agentSteps} />}
             {plans.length > 0 && <PricingSection plans={plans} />}
             {faqs.length > 0 && <FaqSection faqs={faqs} />}
         </>

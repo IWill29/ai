@@ -1,7 +1,9 @@
 import { Link } from '@inertiajs/react';
+import SectionHeading from '@/components/marketing/section-heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useInViewOnce } from '@/hooks/use-in-view-once';
 import { cn } from '@/lib/utils';
 import { register } from '@/routes';
 
@@ -47,26 +49,36 @@ type Props = {
 };
 
 export default function PricingSection({ plans }: Props) {
-    return (
-        <section id="pricing" className="scroll-mt-20 px-4 py-16 md:py-24">
-            <div className="mx-auto max-w-[var(--landing-max-width)]">
-                <h2 className="text-center text-3xl font-semibold tracking-tight">
-                    Simple, flat pricing
-                </h2>
-                <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-                    AI usage is BYOK — you pay OpenRouter directly. Plans cover the AgentStore
-                    platform.
-                </p>
+    const { ref, inView } = useInViewOnce<HTMLElement>();
 
-                <ul className="mt-12 grid gap-6 md:grid-cols-3">
-                    {plans.map((plan) => {
+    return (
+        <section id="pricing" ref={ref} className="scroll-mt-20 px-4 py-16 md:py-24">
+            <div className="mx-auto max-w-[var(--landing-max-width)]">
+                <SectionHeading
+                    title="Simple, flat pricing"
+                    description="AI usage is BYOK — you pay OpenRouter directly. Plans cover the AgentStore platform."
+                />
+
+                <ul className="mt-12 grid list-none gap-6 pl-0 md:grid-cols-3">
+                    {plans.map((plan, index) => {
                         const highlighted = plan.slug === 'pro';
 
                         return (
-                            <li key={plan.slug}>
+                            <li
+                                key={plan.slug}
+                                className={cn(
+                                    inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+                                    'motion-safe:transition-[opacity,transform] motion-safe:duration-500',
+                                    'motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:transition-none',
+                                )}
+                                style={{
+                                    transitionTimingFunction: 'var(--ease-out-strong)',
+                                    transitionDelay: inView ? `${index * 80}ms` : '0ms',
+                                }}
+                            >
                                 <Card
                                     className={cn(
-                                        'flex h-full flex-col rounded-2xl border-border/60',
+                                        'flex h-full flex-col rounded-2xl border-border/60 shadow-[0_4px_20px_-2px_rgb(0_0_0/0.06)] dark:shadow-[0_8px_32px_-8px_rgb(0_0_0/0.45)]',
                                         highlighted &&
                                             'ring-1 ring-indigo-500/40 shadow-[0_4px_24px_-4px_rgb(99_102_241/0.25)]',
                                     )}

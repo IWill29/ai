@@ -3,6 +3,53 @@
 declare(strict_types=1);
 
 return [
+    'agent_steps' => [
+        [
+            'title' => 'Connect & sync Shopify',
+            'body' => 'Create a custom app, paste your Admin API token, and AgentStore mirrors orders, products, and customers. Webhooks plus nightly reconcile keep the mirror fresh.',
+            'tools' => [],
+            'kind' => 'setup',
+        ],
+        [
+            'title' => 'Ask in plain English',
+            'body' => 'Type what you need — “Show unfulfilled orders from last week” or “Update stock for SKU-12”. The agent plans the next steps from your message.',
+            'tools' => [],
+            'kind' => 'chat',
+        ],
+        [
+            'title' => 'Reads from your mirror',
+            'body' => 'Lookups run against your synced PostgreSQL data — fast and consistent. No live Shopify call on every chat turn.',
+            'tools' => [
+                'list_orders',
+                'get_order',
+                'get_metrics',
+                'list_products',
+                'get_product',
+                'list_customers',
+            ],
+            'kind' => 'read',
+        ],
+        [
+            'title' => 'Live action trace',
+            'body' => 'Every tool call appears in the chat thread — which orders were searched, which products matched, and what the agent found before it answers.',
+            'tools' => [],
+            'kind' => 'trace',
+        ],
+        [
+            'title' => 'Confirm before every write',
+            'body' => 'Fulfill, refund, update inventory, or edit catalog entries only after you tap Confirm. Full audit trail for every change.',
+            'tools' => [
+                'fulfill_order',
+                'update_inventory',
+                'update_product',
+                'refund_order',
+                'cancel_order',
+                'tag_order',
+            ],
+            'kind' => 'write',
+        ],
+    ],
+
     'faqs' => [
         [
             'q' => 'What is BYOK (Bring Your Own Key)?',

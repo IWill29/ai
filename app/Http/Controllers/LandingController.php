@@ -36,6 +36,7 @@ final class LandingController extends Controller
         return Inertia::render('landing/index', [
             'plans' => $plans,
             'faqs' => config('marketing.faqs', []),
+            'agentSteps' => config('marketing.agent_steps', []),
             'canonicalUrl' => url('/'),
         ]);
     }

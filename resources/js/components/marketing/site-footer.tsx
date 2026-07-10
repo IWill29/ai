@@ -25,6 +25,11 @@ export default function SiteFooter() {
                                 </a>
                             </li>
                             <li>
+                                <a href="#how-it-works" className="hover:text-foreground">
+                                    How it works
+                                </a>
+                            </li>
+                            <li>
                                 <a href="#pricing" className="hover:text-foreground">
                                     Pricing
                                 </a>
