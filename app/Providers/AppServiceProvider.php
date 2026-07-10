@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Domains\Chat\Models\Conversation;
+use App\Policies\ConversationPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -26,6 +29,12 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDevCommands();
         $this->configureDefaults();
+        $this->configurePolicies();
+    }
+
+    protected function configurePolicies(): void
+    {
+        Gate::policy(Conversation::class, ConversationPolicy::class);
     }
 
     /**

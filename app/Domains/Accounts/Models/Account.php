@@ -11,7 +11,9 @@ use App\Domains\Chat\Models\Conversation;
 use App\Domains\Chat\Models\MessageAttachment;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Models\User;
+use Database\Factories\AccountFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -19,7 +21,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Account extends Model
 {
-    use HasUuids, SoftDeletes;
+    /** @use HasFactory<AccountFactory> */
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -79,5 +82,10 @@ class Account extends Model
     public function messageAttachments(): HasMany
     {
         return $this->hasMany(MessageAttachment::class);
+    }
+
+    protected static function newFactory(): AccountFactory
+    {
+        return AccountFactory::new();
     }
 }

@@ -7,7 +7,15 @@ namespace App\Domains\Accounts\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $account_id
+ * @property string $api_key
+ * @property string|null $default_model
+ * @property Carbon|null $validated_at
+ */
 class OpenRouterCredential extends Model
 {
     use HasUuids;
