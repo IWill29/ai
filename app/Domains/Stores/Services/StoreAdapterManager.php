@@ -32,11 +32,12 @@ final class StoreAdapterManager implements StoreAdapterFactory
 
         return match ($platform) {
             Platform::Shopify => new ShopifyAdapter(
-                new ShopifyClient(
+                client: new ShopifyClient(
                     $connection->domain,
                     $credential->access_token,
                     $connection->id,
                 ),
+                connectionId: $connection->id,
             ),
             Platform::WooCommerce => throw new UnsupportedPlatformException('WooCommerce is v2'),
         };

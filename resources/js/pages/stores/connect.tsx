@@ -1,3 +1,5 @@
+import { Form, Head, Link } from '@inertiajs/react';
+import { ArrowLeft, CheckCircle2, KeyRound, Link2, ShieldCheck, Store } from 'lucide-react';
 import ConnectStoreController from '@/actions/App/Http/Controllers/Stores/ConnectStoreController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -8,8 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { connect, index } from '@/routes/stores';
-import { Form, Head, Link } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, KeyRound, Link2, ShieldCheck, Store } from 'lucide-react';
 
 type Props = {
     scopes: string[];
@@ -33,8 +33,8 @@ const onboardingSteps = [
     },
     {
         icon: Link2,
-        title: 'Install and copy token',
-        description: 'Install the app, reveal the Admin API access token (shpat_…), and paste it below.',
+        title: 'Install and copy credentials',
+        description: 'Install the app, then copy the Admin API access token (shpat_…) and API secret key below.',
     },
 ];
 
@@ -109,7 +109,7 @@ export default function StoresConnect({ scopes }: Props) {
                         <Form
                             {...ConnectStoreController.store.form()}
                             options={{ preserveScroll: true }}
-                            resetOnSuccess={['access_token']}
+                            resetOnSuccess={['access_token', 'api_secret']}
                             className="space-y-6"
                         >
                             {({ processing, errors, wasSuccessful }) => (
@@ -144,6 +144,17 @@ export default function StoresConnect({ scopes }: Props) {
                                             autoComplete="off"
                                         />
                                         <InputError message={errors.access_token} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="api_secret">API secret key</Label>
+                                        <PasswordInput
+                                            id="api_secret"
+                                            name="api_secret"
+                                            placeholder="Required for webhook verification"
+                                            autoComplete="off"
+                                        />
+                                        <InputError message={errors.api_secret} />
                                     </div>
 
                                     {wasSuccessful && (
