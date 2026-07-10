@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils';
 const miniPanel =
     'rounded-lg border border-border/50 bg-muted/25';
 
-type MockupProps = {
+type MockupProps = Readonly<{
     className?: string;
-};
+}>;
 
 export function ChatFeatureMockup({ className }: MockupProps) {
     return (

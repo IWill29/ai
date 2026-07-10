@@ -18,10 +18,10 @@ type PageProps = {
     auth: Auth;
 };
 
-type Props = {
+type Props = Readonly<{
     mustVerifyEmail: boolean;
     status?: string;
-};
+}>;
 
 export default function ProfileSetupPanel({ mustVerifyEmail, status }: Props) {
     const { auth } = usePage<PageProps>().props;

@@ -183,6 +183,17 @@ function MockSidebar() {
     );
 }
 
+type MockKpiCardProps = Readonly<{
+    title: string;
+    value: string;
+    subtitle?: string;
+    icon: typeof TrendingUp;
+    visible: boolean;
+    delayMs: number;
+    highlighted?: boolean;
+    footer?: string;
+}>;
+
 function MockKpiCard({
     title,
     value,
@@ -192,16 +203,7 @@ function MockKpiCard({
     delayMs,
     highlighted = false,
     footer,
-}: {
-    title: string;
-    value: string;
-    subtitle?: string;
-    icon: typeof TrendingUp;
-    visible: boolean;
-    delayMs: number;
-    highlighted?: boolean;
-    footer?: string;
-}) {
+}: MockKpiCardProps) {
     return (
         <div
             className={cn(
@@ -228,15 +230,13 @@ function MockKpiCard({
     );
 }
 
-function MockDashboard({
-    phase,
-    revenueDisplay,
-    ordersCount,
-}: {
+type MockDashboardProps = Readonly<{
     phase: DemoPhase;
     revenueDisplay: string;
     ordersCount: number;
-}) {
+}>;
+
+function MockDashboard({ phase, revenueDisplay, ordersCount }: MockDashboardProps) {
     const highlightUnfulfilled = ['highlight', 'chat', 'user-message', 'agent-message', 'tool-trace'].includes(
         phase,
     );
@@ -321,7 +321,7 @@ function MockDashboard({
     );
 }
 
-function MockChatPanel({ phase }: { phase: DemoPhase }) {
+function MockChatPanel({ phase }: Readonly<{ phase: DemoPhase }>) {
     const panelOpen = ['chat', 'user-message', 'agent-message', 'tool-trace'].includes(phase);
     const userVisible = ['user-message', 'agent-message', 'tool-trace'].includes(phase);
     const agentVisible = ['agent-message', 'tool-trace'].includes(phase);
@@ -393,7 +393,7 @@ function MockChatPanel({ phase }: { phase: DemoPhase }) {
     );
 }
 
-function MockMobileChatStrip({ phase }: { phase: DemoPhase }) {
+function MockMobileChatStrip({ phase }: Readonly<{ phase: DemoPhase }>) {
     const userVisible = ['user-message', 'agent-message', 'tool-trace'].includes(phase);
     const agentVisible = ['agent-message', 'tool-trace'].includes(phase);
 

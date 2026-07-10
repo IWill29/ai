@@ -44,9 +44,9 @@ function formatMessageLimit(limit: number | null): string {
     return `${limit} agent messages / mo`;
 }
 
-type Props = {
+type Props = Readonly<{
     plans: PlanRow[];
-};
+}>;
 
 export default function PricingSection({ plans }: Props) {
     const { ref, inView } = useInViewOnce<HTMLElement>();

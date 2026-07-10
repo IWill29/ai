@@ -55,6 +55,18 @@ const FEATURES: Array<{
     },
 ];
 
+type BentoFeatureCardProps = Readonly<{
+    title: string;
+    body: string;
+    icon: LucideIcon;
+    Mockup: FeatureMockup;
+    bento: string;
+    index: number;
+    inView: boolean;
+    featured?: boolean;
+    wide?: boolean;
+}>;
+
 function BentoFeatureCard({
     title,
     body,
@@ -65,17 +77,7 @@ function BentoFeatureCard({
     inView,
     featured = false,
     wide = false,
-}: {
-    title: string;
-    body: string;
-    icon: LucideIcon;
-    Mockup: FeatureMockup;
-    bento: string;
-    index: number;
-    inView: boolean;
-    featured?: boolean;
-    wide?: boolean;
-}) {
+}: BentoFeatureCardProps) {
     return (
         <li
             className={cn(

@@ -16,7 +16,7 @@ function Wordmark() {
     return appName;
 }
 
-export default function AppLogo({ compact = false }: { compact?: boolean }) {
+export default function AppLogo({ compact = false }: Readonly<{ compact?: boolean }>) {
     return (
         <div
             className={cn(

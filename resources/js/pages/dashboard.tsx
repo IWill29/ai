@@ -81,7 +81,7 @@ function isStale(lastSyncedAt: string | null | undefined): boolean {
     return synced < dayAgo;
 }
 
-function ChangeBadge({ percent }: { percent: number }) {
+function ChangeBadge({ percent }: Readonly<{ percent: number }>) {
     const positive = percent >= 0;
 
     return (

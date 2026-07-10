@@ -1,13 +1,31 @@
-import { writeFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { exportBrandKit } from '../node_modules/@mcpware/logoloom/src/tools/export-brand-kit.mjs';
-import { optimizeSvg } from '../node_modules/@mcpware/logoloom/src/tools/optimize-svg.mjs';
-import { textToPath } from '../node_modules/@mcpware/logoloom/src/tools/text-to-path.mjs';
+import { writeFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const outputDir = join(root, 'brand');
+
+/** @typedef {{ exportBrandKit: Function, optimizeSvg: Function, textToPath: Function }} LogoloomTools */
+
+/** Load LogoLoom CLI tools via dynamic import (package has no public export map in v1.0.1). */
+async function loadLogoloomTools() {
+    const toolsDir = fileURLToPath(
+        new URL('../node_modules/@mcpware/logoloom/src/tools/', import.meta.url),
+    );
+    const [exportMod, optimizeMod, textMod] = await Promise.all([
+        import(new URL('export-brand-kit.mjs', toolsDir).href),
+        import(new URL('optimize-svg.mjs', toolsDir).href),
+        import(new URL('text-to-path.mjs', toolsDir).href),
+    ]);
+
+    return {
+        exportBrandKit: exportMod.exportBrandKit,
+        optimizeSvg: optimizeMod.optimizeSvg,
+        textToPath: textMod.textToPath,
+    };
+}
 
 const brandColors = {
     primary: '#4338CA',
@@ -66,6 +84,8 @@ function fullLogoSvg({ dark = false }) {
 }
 
 async function main() {
+    const { exportBrandKit, optimizeSvg, textToPath } = await loadLogoloomTools();
+
     const iconLight = iconSvg({ dark: false });
     const iconDark = iconSvg({ dark: true });
     const logoLight = fullLogoSvg({ dark: false });

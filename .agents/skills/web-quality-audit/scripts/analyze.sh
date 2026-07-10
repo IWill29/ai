@@ -24,9 +24,9 @@ fail() {
 command -v jq >/dev/null 2>&1 || \
   fail "missing_dependency" "jq is required for safe JSON output" "Install: brew install jq"
 
-[ $# -ge 1 ] || fail "invalid_input" "No target provided" "Usage: $0 <file_or_directory>"
+[[ $# -ge 1 ]] || fail "invalid_input" "No target provided" "Usage: $0 <file_or_directory>"
 TARGET="$1"
-[ -e "$TARGET" ] || fail "invalid_input" "Target not found: $TARGET" "Pass an existing file or directory path"
+[[ -e "$TARGET" ]] || fail "invalid_input" "Target not found: $TARGET" "Pass an existing file or directory path"
 
 ISSUES=()
 WARNINGS=()
@@ -45,7 +45,7 @@ analyze_html() {
   local alt_count=0
   while IFS=: read -r ln tag; do
     if grep -qE 'alt=' <<<"$tag"; then continue; fi
-    if [ "$alt_count" -ge "$MAX_PER_CATEGORY_PER_FILE" ]; then
+    if [[ "$alt_count" -ge "$MAX_PER_CATEGORY_PER_FILE" ]]; then
       WARNINGS+=("$file:0: <img>-without-alt findings truncated (>${MAX_PER_CATEGORY_PER_FILE} in this file)")
       break
     fi
@@ -56,7 +56,7 @@ analyze_html() {
   # Non-HTTPS URLs with line numbers
   local http_count=0
   while IFS=: read -r ln _; do
-    if [ "$http_count" -ge "$MAX_PER_CATEGORY_PER_FILE" ]; then
+    if [[ "$http_count" -ge "$MAX_PER_CATEGORY_PER_FILE" ]]; then
       WARNINGS+=("$file:0: Non-HTTPS URL findings truncated (>${MAX_PER_CATEGORY_PER_FILE} in this file)")
       break
     fi
@@ -66,11 +66,11 @@ analyze_html() {
 }
 
 # Process substitution keeps arrays in main shell (fixes v1 subshell bug)
-if [ -d "$TARGET" ]; then
+if [[ -d "$TARGET" ]]; then
   while IFS= read -r -d '' file; do
     analyze_html "$file"
   done < <(find "$TARGET" \( -name "*.html" -o -name "*.htm" \) -print0)
-elif [ -f "$TARGET" ]; then
+elif [[ -f "$TARGET" ]]; then
   analyze_html "$TARGET"
 else
   fail "invalid_input" "Target is not a regular file or directory: $TARGET" "Pass a path to an .html/.htm file or a directory"
@@ -83,13 +83,13 @@ to_json_array() {
   printf '%s\n' "$@" | jq -Rs 'split("\n") | map(select(length > 0))'
 }
 
-if [ "$issue_total" -gt 0 ]; then
+if [[ "$issue_total" -gt 0 ]]; then
   issues_json=$(to_json_array "${ISSUES[@]:0:$MAX_FINDINGS}")
 else
   issues_json='[]'
 fi
 
-if [ "$warning_total" -gt 0 ]; then
+if [[ "$warning_total" -gt 0 ]]; then
   warnings_json=$(to_json_array "${WARNINGS[@]:0:$MAX_FINDINGS}")
 else
   warnings_json='[]'

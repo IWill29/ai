@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import AppearanceToggle from '@/components/appearance-toggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -21,13 +22,56 @@ function sectionEyebrow(pageTitle: string): string {
     }
 }
 
+function renderHeaderTitle(
+    breadcrumbs: BreadcrumbItemType[],
+    currentPage: BreadcrumbItemType | undefined,
+): ReactNode {
+    const showTitleBlock = breadcrumbs.length === 1 && currentPage;
+
+    if (showTitleBlock) {
+        return (
+            <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/75">
+                    {sectionEyebrow(currentPage.title)}
+                </p>
+                <h1
+                    className={cn(
+                        'truncate text-base font-semibold tracking-tight',
+                        'text-foreground transition-colors duration-150 ease-out',
+                    )}
+                >
+                    {currentPage.title}
+                </h1>
+            </div>
+        );
+    }
+
+    if (breadcrumbs.length > 1) {
+        return <Breadcrumbs breadcrumbs={breadcrumbs} />;
+    }
+
+    if (currentPage) {
+        return (
+            <h1
+                className={cn(
+                    'truncate text-base font-semibold tracking-tight',
+                    'text-foreground transition-colors duration-150 ease-out',
+                )}
+            >
+                {currentPage.title}
+            </h1>
+        );
+    }
+
+    return null;
+}
+
 export function AppSidebarHeader({
     breadcrumbs = [],
-}: {
+}: Readonly<{
     breadcrumbs?: BreadcrumbItemType[];
-}) {
+}>) {
     const currentPage = breadcrumbs.at(-1);
-    const showTitleBlock = breadcrumbs.length === 1 && currentPage;
 
     return (
         <header
@@ -45,32 +89,7 @@ export function AppSidebarHeader({
                     )}
                 />
 
-                {showTitleBlock ? (
-                    <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/75">
-                            {sectionEyebrow(currentPage.title)}
-                        </p>
-                        <h1
-                            className={cn(
-                                'truncate text-base font-semibold tracking-tight',
-                                'text-foreground transition-colors duration-150 ease-out',
-                            )}
-                        >
-                            {currentPage.title}
-                        </h1>
-                    </div>
-                ) : breadcrumbs.length > 1 ? (
-                    <Breadcrumbs breadcrumbs={breadcrumbs} />
-                ) : currentPage ? (
-                    <h1
-                        className={cn(
-                            'truncate text-base font-semibold tracking-tight',
-                            'text-foreground transition-colors duration-150 ease-out',
-                        )}
-                    >
-                        {currentPage.title}
-                    </h1>
-                ) : null}
+                {renderHeaderTitle(breadcrumbs, currentPage)}
             </div>
 
             <AppearanceToggle className="shrink-0" />

@@ -7,9 +7,9 @@ export type FaqItem = {
     a: string;
 };
 
-type Props = {
+type Props = Readonly<{
     faqs: FaqItem[];
-};
+}>;
 
 export default function FaqSection({ faqs }: Props) {
     const { ref, inView } = useInViewOnce<HTMLElement>();
