@@ -3,12 +3,15 @@
 namespace App\Providers;
 
 use App\Domains\Chat\Models\Conversation;
+use App\Domains\Stores\Models\StoreConnection;
+use App\Domains\Stores\Policies\StoreConnectionPolicy;
 use App\Policies\ConversationPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -30,11 +33,29 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDevCommands();
         $this->configureDefaults();
         $this->configurePolicies();
+        $this->configureRouteBindings();
+    }
+
+    protected function configureRouteBindings(): void
+    {
+        Route::bind('storeConnection', function (string $value): StoreConnection {
+            $user = auth()->user();
+
+            if ($user === null || $user->account_id === null) {
+                abort(403);
+            }
+
+            return StoreConnection::query()
+                ->where('account_id', $user->account_id)
+                ->whereKey($value)
+                ->firstOrFail();
+        });
     }
 
     protected function configurePolicies(): void
     {
         Gate::policy(Conversation::class, ConversationPolicy::class);
+        Gate::policy(StoreConnection::class, StoreConnectionPolicy::class);
     }
 
     /**
