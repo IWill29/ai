@@ -82,5 +82,13 @@ class FortifyServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)->by($throttleKey);
         });
+
+        RateLimiter::for('register', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
+
+        RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
+
+        RateLimiter::for('openrouter-validate', fn (Request $request) => Limit::perMinute(5)->by(
+            $request->user()?->id ?: $request->ip(),
+        ));
     }
 }

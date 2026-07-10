@@ -5,27 +5,39 @@ declare(strict_types=1);
 namespace App\Domains\Accounts\Services;
 
 use App\Domains\Accounts\Contracts\AccountService;
-use App\Domains\Shared\Concerns\DefersImplementation;
+use App\Domains\Accounts\Models\Account;
+use App\Domains\Accounts\Models\OpenRouterCredential;
+use App\Jobs\DeleteAccountJob;
+use Illuminate\Support\Facades\DB;
 
-/**
- * Placeholder until Phase 4 (registration, GDPR delete, BYOK).
- */
 final class DefaultAccountService implements AccountService
 {
-    use DefersImplementation;
-
     public function createForRegistration(string $userId, string $name): string
     {
-        $this->notImplemented('AccountService');
-    }
+        return DB::transaction(function () use ($name): string {
+            $account = Account::query()->create([
+                'name' => $name,
+                'locale' => 'en',
+            ]);
 
-    public function deleteAccount(string $accountId): void
-    {
-        $this->notImplemented('AccountService');
+            return $account->id;
+        });
     }
 
     public function saveOpenRouterKey(string $accountId, string $apiKey, ?string $defaultModel): void
     {
-        $this->notImplemented('AccountService');
+        OpenRouterCredential::query()->updateOrCreate(
+            ['account_id' => $accountId],
+            [
+                'api_key' => $apiKey,
+                'default_model' => $defaultModel,
+                'validated_at' => now(),
+            ],
+        );
+    }
+
+    public function deleteAccount(string $accountId): void
+    {
+        DeleteAccountJob::dispatch($accountId)->afterCommit();
     }
 }
