@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState  } from 'react';
+import type {RefObject} from 'react';
 
 export function useInViewOnce<T extends Element = HTMLDivElement>(
     threshold = 0.12,

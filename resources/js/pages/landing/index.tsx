@@ -1,10 +1,11 @@
 import { Head } from '@inertiajs/react';
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense  } from 'react';
+import type {ReactNode} from 'react';
+import type { AgentStep } from '@/components/marketing/agent-workflow-section';
 import HeroSection from '@/components/marketing/hero-section';
+import type { PlanRow } from '@/components/marketing/pricing-section';
 import SectionPlaceholder from '@/components/marketing/section-placeholder';
 import MarketingLayout from '@/layouts/marketing-layout';
-import type { AgentStep } from '@/components/marketing/agent-workflow-section';
-import type { PlanRow } from '@/components/marketing/pricing-section';
 
 const FeaturesSection = lazy(() => import('@/components/marketing/features-section'));
 const AgentWorkflowSection = lazy(() => import('@/components/marketing/agent-workflow-section'));

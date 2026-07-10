@@ -1,9 +1,9 @@
 import { writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { textToPath } from '../node_modules/@mcpware/logoloom/src/tools/text-to-path.mjs';
-import { optimizeSvg } from '../node_modules/@mcpware/logoloom/src/tools/optimize-svg.mjs';
 import { exportBrandKit } from '../node_modules/@mcpware/logoloom/src/tools/export-brand-kit.mjs';
+import { optimizeSvg } from '../node_modules/@mcpware/logoloom/src/tools/optimize-svg.mjs';
+import { textToPath } from '../node_modules/@mcpware/logoloom/src/tools/text-to-path.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');

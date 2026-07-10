@@ -1,4 +1,6 @@
-import { LayoutGrid, MessageSquare, Sparkles, Store, type LucideIcon } from 'lucide-react';
+import { LayoutGrid, MessageSquare, Sparkles, Store  } from 'lucide-react';
+import type {LucideIcon} from 'lucide-react';
+import type { ComponentType } from 'react';
 import {
     ByokFeatureMockup,
     ChatFeatureMockup,
@@ -8,7 +10,6 @@ import {
 import SectionHeading from '@/components/marketing/section-heading';
 import { useInViewOnce } from '@/hooks/use-in-view-once';
 import { cn } from '@/lib/utils';
-import type { ComponentType } from 'react';
 
 type FeatureMockup = ComponentType<{ className?: string }>;
 

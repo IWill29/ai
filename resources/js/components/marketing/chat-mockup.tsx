@@ -8,7 +8,8 @@ import {
     Store,
     TrendingUp,
 } from 'lucide-react';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState, useSyncExternalStore  } from 'react';
+import type {CSSProperties} from 'react';
 import AppLogo from '@/components/app-logo';
 import { useInViewOnce } from '@/hooks/use-in-view-once';
 import { cn } from '@/lib/utils';
@@ -30,19 +31,16 @@ type DemoPhase =
     | 'tool-trace';
 
 function usePrefersReducedMotion(): boolean {
-    const [reduced, setReduced] = useState(false);
+    return useSyncExternalStore(
+        (onStoreChange) => {
+            const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+            media.addEventListener('change', onStoreChange);
 
-    useEffect(() => {
-        const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-        setReduced(media.matches);
-
-        const onChange = (): void => setReduced(media.matches);
-        media.addEventListener('change', onChange);
-
-        return () => media.removeEventListener('change', onChange);
-    }, []);
-
-    return reduced;
+            return () => media.removeEventListener('change', onStoreChange);
+        },
+        () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        () => false,
+    );
 }
 
 function usePageVisible(): boolean {
@@ -95,16 +93,13 @@ function useDemoPhase(reducedMotion: boolean, enabled: boolean): DemoPhase {
 }
 
 function useCountUp(target: number, active: boolean, duration = 900): number {
-    const [value, setValue] = useState(active ? 0 : target);
+    const [value, setValue] = useState(0);
 
     useEffect(() => {
         if (!active) {
-            setValue(target);
-
             return;
         }
 
-        setValue(0);
         const start = performance.now();
         let frame = 0;
 
@@ -123,7 +118,7 @@ function useCountUp(target: number, active: boolean, duration = 900): number {
         return () => cancelAnimationFrame(frame);
     }, [active, duration, target]);
 
-    return value;
+    return active ? value : target;
 }
 
 function revealClass(visible: boolean): string {

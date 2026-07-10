@@ -2,9 +2,8 @@ import { Head, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 import StoreController from '@/actions/App/Http/Controllers/Stores/StoreController';
 import ChatEmptyState from '@/components/chat/chat-empty-state';
-import ChatStoreSyncPanel, {
-    type ChatStoreSyncState,
-} from '@/components/chat/chat-store-sync-panel';
+import ChatStoreSyncPanel from '@/components/chat/chat-store-sync-panel';
+import type {ChatStoreSyncState} from '@/components/chat/chat-store-sync-panel';
 import { index as chatIndex } from '@/routes/chat';
 
 type StoreSyncProps = ChatStoreSyncState;

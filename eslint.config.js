@@ -118,6 +118,14 @@ export default [
     },
     prettier,
     {
+        files: ['scripts/**/*.mjs'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
+    {
         plugins: {
             '@stylistic': stylistic,
         },

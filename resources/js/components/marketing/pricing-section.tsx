@@ -4,8 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInViewOnce } from '@/hooks/use-in-view-once';
-import { cn } from '@/lib/utils';
 import { MARKETING_ROUTES } from '@/lib/marketing-routes';
+import { cn } from '@/lib/utils';
 
 export type PlanRow = {
     slug: string;

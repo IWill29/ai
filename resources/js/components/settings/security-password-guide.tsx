@@ -1,4 +1,5 @@
-import { KeyRound, ShieldCheck, Shuffle, type LucideIcon } from 'lucide-react';
+import { KeyRound, ShieldCheck, Shuffle  } from 'lucide-react';
+import type {LucideIcon} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 

@@ -10,7 +10,6 @@ import {
 import { useTransition } from 'react';
 import StoreSetupEmptyState from '@/components/stores/store-setup-empty-state';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Select,

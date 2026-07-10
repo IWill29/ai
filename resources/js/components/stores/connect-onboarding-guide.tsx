@@ -103,6 +103,7 @@ export default function ConnectOnboardingGuide({
 
         if (isLastStep) {
             onReadyForCredentials?.();
+
             return;
         }
 

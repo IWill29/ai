@@ -1,5 +1,5 @@
-import { Breadcrumbs } from '@/components/breadcrumbs';
 import AppearanceToggle from '@/components/appearance-toggle';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';

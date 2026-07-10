@@ -22,8 +22,9 @@ final class CacheLandingResponse
             return $next($request);
         }
 
-        $appearance = $request->cookie('appearance', 'system');
-        $cacheKey = 'landing.response.'.$appearance;
+        $appearance = $request->cookie('appearance');
+        $appearanceKey = is_string($appearance) ? $appearance : 'system';
+        $cacheKey = 'landing.response.'.$appearanceKey;
 
         /** @var array{content: string, headers: array<string, string>}|null $cached */
         $cached = Cache::get($cacheKey);

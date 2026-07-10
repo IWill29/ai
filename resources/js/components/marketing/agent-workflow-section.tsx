@@ -3,9 +3,10 @@ import {
     Link2,
     Lock,
     MessageSquare,
-    Search,
-    type LucideIcon,
+    Search
+    
 } from 'lucide-react';
+import type {LucideIcon} from 'lucide-react';
 import AgentStepMockup from '@/components/marketing/agent-step-mockup';
 import SectionHeading from '@/components/marketing/section-heading';
 import { Badge } from '@/components/ui/badge';
