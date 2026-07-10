@@ -1,0 +1,7 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domains\Stores\Exceptions;
+
+final class InvalidCredentialsException extends StoreException {}
