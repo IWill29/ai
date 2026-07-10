@@ -1,3 +1,5 @@
+import { Form, Head, Link } from '@inertiajs/react';
+import { ArrowLeft, CheckCircle2, KeyRound, Link2, ShieldCheck, Store } from 'lucide-react';
 import ConnectStoreController from '@/actions/App/Http/Controllers/Stores/ConnectStoreController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -8,8 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { connect, index } from '@/routes/stores';
-import { Form, Head, Link } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, KeyRound, Link2, ShieldCheck, Store } from 'lucide-react';
 
 type Props = {
     scopes: string[];

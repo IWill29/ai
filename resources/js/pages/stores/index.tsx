@@ -1,3 +1,6 @@
+import { Form, Head, Link, router } from '@inertiajs/react';
+import { AlertTriangle, Plus, RefreshCw, Store, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import StoreController from '@/actions/App/Http/Controllers/Stores/StoreController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -16,9 +19,6 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { connect, index } from '@/routes/stores';
-import { Form, Head, Link, router } from '@inertiajs/react';
-import { AlertTriangle, Plus, RefreshCw, Store, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 
 type StoreItem = {
     id: string;

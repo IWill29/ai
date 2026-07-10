@@ -1,11 +1,11 @@
+import { Head, Link, router } from '@inertiajs/react';
+import { AlertTriangle, Loader2, RefreshCw, Store } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import StoreController from '@/actions/App/Http/Controllers/Stores/StoreController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { connect } from '@/routes/stores';
-import { Head, Link, router } from '@inertiajs/react';
-import { AlertTriangle, Loader2, RefreshCw, Store } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
 
 type StoreSyncProps = {
     connectionId: string;
@@ -20,6 +20,11 @@ type StoreSyncProps = {
 type Props = {
     storeSync: StoreSyncProps | null;
 };
+
+type LiveSyncOverride = Pick<
+    StoreSyncProps,
+    'state' | 'entity' | 'error' | 'lastSyncedAt' | 'status'
+>;
 
 function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(undefined, {
@@ -36,9 +41,17 @@ function entityLabel(entity: string | null): string {
     return entity.charAt(0).toUpperCase() + entity.slice(1);
 }
 
-export default function ChatIndex({ storeSync }: Props) {
-    const [syncState, setSyncState] = useState(storeSync);
+function ChatPageContent({ storeSync }: Props) {
+    const [liveSync, setLiveSync] = useState<LiveSyncOverride | null>(null);
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
+    const syncState =
+        storeSync === null
+            ? null
+            : {
+                  ...storeSync,
+                  ...(liveSync ?? {}),
+              };
 
     const pollSyncStatus = useCallback(async (connectionId: string) => {
         const response = await fetch(`/stores/${connectionId}/sync-status`, {
@@ -58,28 +71,17 @@ export default function ChatIndex({ storeSync }: Props) {
             status: string;
         };
 
-        setSyncState((current) => {
-            if (current === null) {
-                return current;
-            }
-
-            return {
-                ...current,
-                state: data.state,
-                entity: data.entity,
-                error: data.error,
-                lastSyncedAt: data.last_synced_at,
-                status: data.status,
-            };
+        setLiveSync({
+            state: data.state,
+            entity: data.entity,
+            error: data.error,
+            lastSyncedAt: data.last_synced_at,
+            status: data.status,
         });
     }, []);
 
     useEffect(() => {
-        setSyncState(storeSync);
-    }, [storeSync]);
-
-    useEffect(() => {
-        if (syncState?.state !== 'syncing' || syncState.connectionId === undefined) {
+        if (syncState?.state !== 'syncing') {
             return;
         }
 
@@ -108,9 +110,13 @@ export default function ChatIndex({ storeSync }: Props) {
                         setSyncMessage('Sync already in progress.');
                     } else if (message === 'started') {
                         setSyncMessage(null);
-                        setSyncState((current) =>
-                            current === null ? current : { ...current, state: 'syncing' },
-                        );
+                        setLiveSync((current) => ({
+                            state: 'syncing',
+                            entity: current?.entity ?? null,
+                            error: null,
+                            lastSyncedAt: current?.lastSyncedAt ?? syncState.lastSyncedAt,
+                            status: current?.status ?? syncState.status,
+                        }));
                     }
                 },
             },
@@ -200,4 +206,8 @@ export default function ChatIndex({ storeSync }: Props) {
             </div>
         </>
     );
+}
+
+export default function ChatIndex(props: Props) {
+    return <ChatPageContent key={props.storeSync?.connectionId ?? 'no-store'} {...props} />;
 }
