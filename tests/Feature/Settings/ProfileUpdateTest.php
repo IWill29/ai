@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Domains\Accounts\Models\Account;
+use App\Domains\Stores\Models\StoreConnection;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -64,6 +66,7 @@ class ProfileUpdateTest extends TestCase
     public function test_user_can_delete_their_account()
     {
         $user = User::factory()->create();
+        $accountId = $user->account_id;
 
         $response = $this
             ->actingAs($user)
@@ -77,6 +80,55 @@ class ProfileUpdateTest extends TestCase
 
         $this->assertGuest();
         $this->assertNull($user->fresh());
+        $this->assertNull(Account::query()->find($accountId));
+    }
+
+    public function test_account_deletion_force_deletes_store_connections(): void
+    {
+        $user = User::factory()->create();
+
+        $connection = StoreConnection::query()->create([
+            'account_id' => $user->account_id,
+            'platform' => 'shopify',
+            'name' => 'Test Store',
+            'domain' => 'test.myshopify.com',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('profile.destroy'), [
+                'password' => 'password',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('home'));
+
+        $this->assertNull(StoreConnection::withTrashed()->find($connection->id));
+    }
+
+    public function test_account_deletion_force_deletes_soft_deleted_store_connections(): void
+    {
+        $user = User::factory()->create();
+
+        $connection = StoreConnection::query()->create([
+            'account_id' => $user->account_id,
+            'platform' => 'shopify',
+            'name' => 'Archived Store',
+            'domain' => 'archived.myshopify.com',
+            'status' => 'disconnected',
+        ]);
+
+        $connection->delete();
+
+        $this->assertNotNull(StoreConnection::withTrashed()->find($connection->id));
+
+        $this->actingAs($user)
+            ->delete(route('profile.destroy'), [
+                'password' => 'password',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('home'));
+
+        $this->assertNull(StoreConnection::withTrashed()->find($connection->id));
     }
 
     public function test_correct_password_must_be_provided_to_delete_account()

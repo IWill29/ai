@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Chat\Models;
 
 use App\Domains\Accounts\Models\Account;
+use App\Domains\Shared\Concerns\BelongsToAccount;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Conversation extends Model
 {
-    use HasUuids, SoftDeletes;
+    use BelongsToAccount, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'account_id',
