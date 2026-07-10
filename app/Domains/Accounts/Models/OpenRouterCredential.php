@@ -20,6 +20,8 @@ class OpenRouterCredential extends Model
 {
     use HasUuids;
 
+    protected $table = 'openrouter_credentials';
+
     protected $fillable = [
         'account_id',
         'api_key',

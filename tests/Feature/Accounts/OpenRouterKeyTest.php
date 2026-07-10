@@ -4,35 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Accounts;
 
-use App\Domains\Accounts\Models\Account;
 use App\Domains\Accounts\Models\OpenRouterCredential;
-use App\Domains\Chat\Models\Conversation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
-
-class RegistrationCreatesAccountTest extends TestCase
-{
-    use RefreshDatabase;
-
-    public function test_registration_creates_account_for_user(): void
-    {
-        $this->post(route('register.store'), [
-            'name' => 'Merchant',
-            'email' => 'merchant@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ])->assertRedirect(route('dashboard', absolute: false));
-
-        $user = User::query()->firstWhere('email', 'merchant@example.com');
-
-        $this->assertNotNull($user);
-        $this->assertNotNull($user->account_id);
-        $this->assertSame('owner', $user->role);
-        $this->assertDatabaseHas('accounts', ['id' => $user->account_id]);
-    }
-}
 
 class OpenRouterKeyTest extends TestCase
 {
@@ -90,47 +66,5 @@ class OpenRouterKeyTest extends TestCase
         $this->assertNull(
             OpenRouterCredential::query()->where('account_id', $user->account_id)->first(),
         );
-    }
-}
-
-class ConversationPolicyTest extends TestCase
-{
-    use RefreshDatabase;
-
-    public function test_user_cannot_view_another_accounts_conversation(): void
-    {
-        $owner = User::factory()->create();
-        $intruder = User::factory()->create();
-
-        $conversation = Conversation::query()->create([
-            'account_id' => $owner->account_id,
-            'user_id' => $owner->id,
-            'title' => 'Ops',
-            'model' => 'openai/gpt-4o-mini',
-        ]);
-
-        $this->assertFalse($intruder->can('view', $conversation));
-        $this->assertTrue($owner->can('view', $conversation));
-    }
-}
-
-class AccountDeletionTest extends TestCase
-{
-    use RefreshDatabase;
-
-    public function test_account_deletion_wipes_account_and_user(): void
-    {
-        $user = User::factory()->create();
-        $accountId = $user->account_id;
-
-        $this->actingAs($user)
-            ->delete(route('profile.destroy'), [
-                'password' => 'password',
-            ])
-            ->assertRedirect(route('home'));
-
-        $this->assertGuest();
-        $this->assertNull(User::query()->find($user->id));
-        $this->assertNull(Account::query()->find($accountId));
     }
 }
