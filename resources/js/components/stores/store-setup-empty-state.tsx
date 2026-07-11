@@ -65,7 +65,7 @@ function revealClass(delayClass?: string): string {
 }
 
 function staggerRevealDelay(index: number, delays: readonly string[]): string {
-    return delays[index] ?? delays[delays.length - 1] ?? '';
+    return delays[index] ?? delays.at(-1) ?? '';
 }
 
 function BentoPreview() {

@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import { MARKETING_ROUTES } from '@/lib/marketing-routes';
 
 export default function SiteFooter() {
@@ -45,14 +44,14 @@ export default function SiteFooter() {
                         <p className="font-medium">Account</p>
                         <ul className="space-y-2 text-muted-foreground">
                             <li>
-                                <Link href={MARKETING_ROUTES.login} className="hover:text-foreground">
+                                <a href={MARKETING_ROUTES.login} className="hover:text-foreground">
                                     Log in
-                                </Link>
+                                </a>
                             </li>
                             <li>
-                                <Link href={MARKETING_ROUTES.register} className="hover:text-foreground">
+                                <a href={MARKETING_ROUTES.register} className="hover:text-foreground">
                                     Register
-                                </Link>
+                                </a>
                             </li>
                         </ul>
                     </div>

@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { lazy, Suspense  } from 'react';
 import type {ReactNode} from 'react';
+import { HeadLink, HeadMeta, HeadScript } from '@/components/inertia-head-tags';
 import type { AgentStep } from '@/components/marketing/agent-workflow-section';
 import HeroSection from '@/components/marketing/hero-section';
 import type { PlanRow } from '@/components/marketing/pricing-section';
@@ -56,24 +57,24 @@ export default function LandingIndex({ plans, faqs, agentSteps, canonicalUrl }: 
     return (
         <>
             <Head title="Run your Shopify store with AI">
-                <meta head-key="description" name="description" content={META_DESCRIPTION} />
-                <meta
-                    head-key="og:title"
+                <HeadMeta headKey="description" name="description" content={META_DESCRIPTION} />
+                <HeadMeta
+                    headKey="og:title"
                     property="og:title"
                     content="AgentStore — Run your Shopify store with AI"
                 />
-                <meta head-key="og:description" property="og:description" content={META_DESCRIPTION} />
-                <meta head-key="og:type" property="og:type" content="website" />
-                <meta head-key="og:url" property="og:url" content={canonicalUrl} />
-                <link head-key="canonical" rel="canonical" href={canonicalUrl} />
-                <script
-                    head-key="speculation-rules"
+                <HeadMeta headKey="og:description" property="og:description" content={META_DESCRIPTION} />
+                <HeadMeta headKey="og:type" property="og:type" content="website" />
+                <HeadMeta headKey="og:url" property="og:url" content={canonicalUrl} />
+                <HeadLink headKey="canonical" rel="canonical" href={canonicalUrl} />
+                <HeadScript
+                    headKey="speculation-rules"
                     type="speculationrules"
                     dangerouslySetInnerHTML={{ __html: SPECULATION_RULES }}
                 />
                 {faqs.length > 0 && (
-                    <script
-                        head-key="faq-jsonld"
+                    <HeadScript
+                        headKey="faq-jsonld"
                         type="application/ld+json"
                         dangerouslySetInnerHTML={{ __html: faqJsonLd(faqs) }}
                     />

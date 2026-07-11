@@ -8,13 +8,15 @@ import { index as chatIndex } from '@/routes/chat';
 
 type StoreSyncProps = ChatStoreSyncState;
 
-type ChatPageContentProps = {
+type ChatPageContentProps = Readonly<{
     storeSync: StoreSyncProps | null;
-};
+}>;
 
-type ChatIndexProps = ChatPageContentProps & {
-    prefillPrompt?: string | null;
-};
+type ChatIndexProps = Readonly<
+    ChatPageContentProps & {
+        prefillPrompt?: string | null;
+    }
+>;
 
 type LiveSyncOverride = Pick<
     StoreSyncProps,

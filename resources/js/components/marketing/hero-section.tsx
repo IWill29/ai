@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import { lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { useHideLandingLcpFallback } from '@/lib/landing-lcp-fallback';
@@ -34,9 +33,7 @@ export default function HeroSection() {
                             variant="brand"
                             className="w-full rounded-full px-8 active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto"
                         >
-                            <Link href={MARKETING_ROUTES.register} prefetch>
-                                Get started free
-                            </Link>
+                            <a href={MARKETING_ROUTES.register}>Get started free</a>
                         </Button>
                         <Button asChild size="lg" variant="outline" className="w-full rounded-xl sm:w-auto">
                             <a href="#features">See features</a>

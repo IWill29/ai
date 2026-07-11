@@ -46,20 +46,14 @@ export default function SiteHeader() {
                     </Suspense>
 
                     <Button variant="ghost" asChild className="hidden rounded-xl sm:inline-flex">
-                        <Link href={MARKETING_ROUTES.login} prefetch>
-                            Log in
-                        </Link>
+                        <a href={MARKETING_ROUTES.login}>Log in</a>
                     </Button>
                     <Button asChild variant="brand" className="hidden rounded-full sm:inline-flex">
-                        <Link href={MARKETING_ROUTES.register} prefetch>
-                            Get started
-                        </Link>
+                        <a href={MARKETING_ROUTES.register}>Get started</a>
                     </Button>
 
                     <Button asChild variant="brand" size="sm" className="rounded-full sm:hidden">
-                        <Link href={MARKETING_ROUTES.register} prefetch>
-                            Start
-                        </Link>
+                        <a href={MARKETING_ROUTES.register}>Start</a>
                     </Button>
 
                     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -94,14 +88,14 @@ export default function SiteHeader() {
                                     <AppearanceToggle className="w-full" />
                                 </Suspense>
                                 <Button variant="outline" asChild className="rounded-xl">
-                                    <Link href={MARKETING_ROUTES.login} onClick={() => setMobileOpen(false)}>
+                                    <a href={MARKETING_ROUTES.login} onClick={() => setMobileOpen(false)}>
                                         Log in
-                                    </Link>
+                                    </a>
                                 </Button>
                                 <Button asChild variant="brand" className="rounded-full">
-                                    <Link href={MARKETING_ROUTES.register} onClick={() => setMobileOpen(false)}>
+                                    <a href={MARKETING_ROUTES.register} onClick={() => setMobileOpen(false)}>
                                         Get started
-                                    </Link>
+                                    </a>
                                 </Button>
                             </div>
                         </SheetContent>

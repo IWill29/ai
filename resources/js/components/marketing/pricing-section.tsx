@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import SectionHeading from '@/components/marketing/section-heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -110,11 +109,11 @@ export default function PricingSection({ plans }: Props) {
                                             variant={highlighted ? 'brand' : 'outline'}
                                             className="w-full rounded-full active:scale-[0.97] motion-reduce:active:scale-100"
                                         >
-                                            <Link href={MARKETING_ROUTES.register}>
+                                            <a href={MARKETING_ROUTES.register}>
                                                 {plan.slug === 'free'
                                                     ? 'Get started free'
                                                     : 'Get started'}
-                                            </Link>
+                                            </a>
                                         </Button>
                                     </CardFooter>
                                 </Card>
