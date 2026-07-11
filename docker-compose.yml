@@ -8,13 +8,28 @@ services:
     volumes:
       - .:/var/www/html
     depends_on:
-      - pgsql
-      - redis
-      - mailpit
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailpit:
+        condition: service_started
     environment:
+      APP_URL: http://127.0.0.1:8000
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      INERTIA_SSR_ENABLED: "false"
+      DB_CONNECTION: pgsql
       DB_HOST: pgsql
+      DB_PORT: 5432
+      DB_DATABASE: agentstore
+      DB_USERNAME: agentstore
+      DB_PASSWORD: secret
       REDIS_HOST: redis
+      REDIS_PORT: 6379
       MAIL_HOST: mailpit
+      MAIL_PORT: 1025
 
   pgsql:
     image: pgvector/pgvector:pg16
@@ -26,6 +41,12 @@ services:
       POSTGRES_PASSWORD: secret
     volumes:
       - pgsql_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentstore -d agentstore"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   redis:
     image: redis:7-alpine

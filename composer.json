@@ -60,6 +60,10 @@
             "Composer\\Config::disableProcessTimeout",
             "@php artisan dev"
         ],
+        "dev:assets": [
+            "Composer\\Config::disableProcessTimeout",
+            "npm run dev"
+        ],
         "lint": [
             "pint --parallel"
         ],

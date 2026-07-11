@@ -1,5 +1,18 @@
 <?php
 
+$runningInDocker = file_exists('/.dockerenv');
+
+$mailHost = env('MAIL_HOST', '127.0.0.1');
+$mailPort = env('MAIL_PORT', 2525);
+
+if ($runningInDocker && in_array($mailHost, ['127.0.0.1', 'localhost'], true)) {
+    $mailHost = 'mailpit';
+}
+
+if ($runningInDocker && (string) $mailPort === '1026') {
+    $mailPort = 1025;
+}
+
 return [
 
     /*
@@ -41,8 +54,8 @@ return [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
             'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', '127.0.0.1'),
-            'port' => env('MAIL_PORT', 2525),
+            'host' => $mailHost,
+            'port' => $mailPort,
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
