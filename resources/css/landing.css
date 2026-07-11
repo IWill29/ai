@@ -1,0 +1,16 @@
+@import './theme.css';
+
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@source '../js/pages/landing/**/*.tsx';
+@source '../js/components/marketing/**/*.tsx';
+@source '../js/layouts/marketing-layout.tsx';
+@source '../js/components/ui/*.tsx';
+@source '../js/components/app-logo.tsx';
+@source '../js/components/appearance-toggle.tsx';
+@source '../js/hooks/use-appearance.tsx';
+@source '../js/hooks/use-in-view-once.ts';
+@source '../js/hooks/use-scroll-spy-steps.ts';
+@source '../js/lib/**/*.ts';

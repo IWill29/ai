@@ -1,14 +1,19 @@
 <?php
 
 use App\Http\Controllers\Chat\ChatController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Settings\OpenRouterController;
 use App\Http\Controllers\Stores\ConnectStoreController;
 use App\Http\Controllers\Stores\StoreController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
+use App\Http\Middleware\CacheLandingResponse;
 use App\Http\Middleware\VerifyShopifyWebhook;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', [LandingController::class, 'index'])
+    ->middleware(CacheLandingResponse::class)
+    ->name('home');
 
 Route::post('/webhooks/shopify/{storeConnectionId}', [ShopifyWebhookController::class, 'handle'])
     ->middleware(VerifyShopifyWebhook::class)
@@ -16,7 +21,7 @@ Route::post('/webhooks/shopify/{storeConnectionId}', [ShopifyWebhookController::
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('stores', [StoreController::class, 'index'])->name('stores.index');
     Route::get('stores/connect', [ConnectStoreController::class, 'create'])->name('stores.connect');
     Route::post('stores/connect', [ConnectStoreController::class, 'store'])->name('stores.store');

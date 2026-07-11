@@ -1,13 +1,111 @@
+import { useId } from 'react';
 import type { SVGAttributes } from 'react';
+import { cn } from '@/lib/utils';
 
-export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
+/** Geometric "A" monogram — AgentStore wordmark initial */
+const A_BODY =
+    'M40 19 25.5 58h7.3l3-9.8h8.4l3 9.8h7.3L40 19Zm-2.8 22.5h5.6L40 33.2l-2.8 8.3Z';
+
+/** Agent orbit arc — live AI commerce signal */
+const AGENT_ARC = 'M51.2 17.2a9.2 9.2 0 0 1 10.3 9.1';
+
+/**
+ * AgentStore mark — premium dual-theme monogram.
+ * Light: indigo depth · Dark: obsidian glass tile.
+ */
+export default function AppLogoIcon({
+    className,
+    ...props
+}: SVGAttributes<SVGElement>) {
+    const tileLight = useId();
+    const tileDark = useId();
+    const shine = useId();
+
     return (
-        <svg {...props} viewBox="0 0 40 42" xmlns="http://www.w3.org/2000/svg">
-            <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M17.2 5.63325L8.6 0.855469L0 5.63325V32.1434L16.2 41.1434L32.4 32.1434V23.699L40 19.4767V9.85547L31.4 5.07769L22.8 9.85547V18.2999L17.2 21.411V5.63325ZM38 18.2999L32.4 21.411V15.2545L38 12.1434V18.2999ZM36.9409 10.4439L31.4 13.5221L25.8591 10.4439L31.4 7.36561L36.9409 10.4439ZM24.8 18.2999V12.1434L30.4 15.2545V21.411L24.8 18.2999ZM23.8 20.0323L29.3409 23.1105L16.2 30.411L10.6591 27.3328L23.8 20.0323ZM7.6 27.9212L15.2 32.1434V38.2999L2 30.9666V7.92116L7.6 11.0323V27.9212ZM8.6 9.29991L3.05913 6.22165L8.6 3.14339L14.1409 6.22165L8.6 9.29991ZM30.4 24.8101L17.2 32.1434V38.2999L30.4 30.9666V24.8101ZM9.6 11.0323L15.2 7.92117V22.5221L9.6 25.6333V11.0323Z"
-            />
+        <svg
+            viewBox="0 0 80 80"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden
+            className={cn('size-full', className)}
+            {...props}
+        >
+            <defs>
+                <linearGradient
+                    id={tileLight}
+                    x1="12"
+                    y1="8"
+                    x2="68"
+                    y2="72"
+                    gradientUnits="userSpaceOnUse"
+                >
+                    <stop stopColor="#3730A3" />
+                    <stop stopColor="#6366F1" />
+                </linearGradient>
+                <linearGradient
+                    id={tileDark}
+                    x1="12"
+                    y1="8"
+                    x2="68"
+                    y2="72"
+                    gradientUnits="userSpaceOnUse"
+                >
+                    <stop stopColor="#1E2130" />
+                    <stop stopColor="#12141F" />
+                </linearGradient>
+                <linearGradient
+                    id={shine}
+                    x1="40"
+                    y1="6"
+                    x2="40"
+                    y2="38"
+                    gradientUnits="userSpaceOnUse"
+                >
+                    <stop stopColor="#FFFFFF" stopOpacity="0.2" />
+                    <stop stopColor="#FFFFFF" stopOpacity="0" />
+                </linearGradient>
+            </defs>
+
+            <g className="dark:hidden">
+                <rect width="80" height="80" rx="18" fill={`url(#${tileLight})`} />
+                <rect width="80" height="38" rx="18" fill={`url(#${shine})`} />
+                <path
+                    d={AGENT_ARC}
+                    stroke="#34D399"
+                    strokeOpacity="0.45"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    fill="none"
+                />
+                <circle cx="60.5" cy="25.5" r="6" fill="#34D399" fillOpacity="0.2" />
+                <circle cx="60.5" cy="25.5" r="3.75" fill="#34D399" />
+                <circle cx="60.5" cy="25.5" r="1.35" fill="#ECFDF5" />
+                <path fill="#FFFFFF" fillRule="evenodd" clipRule="evenodd" d={A_BODY} />
+            </g>
+
+            <g className="hidden dark:block">
+                <rect
+                    width="80"
+                    height="80"
+                    rx="18"
+                    fill={`url(#${tileDark})`}
+                    stroke="rgba(255,255,255,0.1)"
+                    strokeWidth="1"
+                />
+                <rect width="80" height="34" rx="18" fill={`url(#${shine})`} />
+                <path
+                    d={AGENT_ARC}
+                    stroke="#34D399"
+                    strokeOpacity="0.35"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    fill="none"
+                />
+                <circle cx="60.5" cy="25.5" r="6" fill="#34D399" fillOpacity="0.16" />
+                <circle cx="60.5" cy="25.5" r="3.5" fill="#34D399" />
+                <circle cx="60.5" cy="25.5" r="1.2" fill="#D1FAE5" />
+                <path fill="#E8EAF2" fillRule="evenodd" clipRule="evenodd" d={A_BODY} />
+            </g>
         </svg>
     );
 }

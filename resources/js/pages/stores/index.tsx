@@ -1,10 +1,11 @@
-import { Form, Head, Link, router } from '@inertiajs/react';
-import { AlertTriangle, Plus, RefreshCw, Store, Trash2 } from 'lucide-react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { AlertTriangle, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import StoreController from '@/actions/App/Http/Controllers/Stores/StoreController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import StoreSetupEmptyState from '@/components/stores/store-setup-empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,11 +83,7 @@ function ReconnectDialog({ store }: { store: StoreItem }) {
                                 <InputError message={errors.access_token} />
                             </div>
                             <DialogFooter>
-                                <Button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="rounded-xl bg-indigo-600 hover:bg-indigo-500"
-                                >
+                                <Button type="submit" disabled={processing} variant="brand">
                                     {processing ? 'Validating…' : 'Save token'}
                                 </Button>
                             </DialogFooter>
@@ -99,6 +96,9 @@ function ReconnectDialog({ store }: { store: StoreItem }) {
 }
 
 export default function StoresIndex({ stores }: Props) {
+    const { hasConnectedStores } = usePage().props;
+    const showEmptyState = !hasConnectedStores && stores.length === 0;
+
     const handleDisconnect = (store: StoreItem) => {
         if (
             !window.confirm(
@@ -117,40 +117,24 @@ export default function StoresIndex({ stores }: Props) {
         <>
             <Head title="Stores" />
 
-            <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 p-4 md:p-6">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <Heading
-                        variant="small"
-                        title="Connected stores"
-                        description="Manage Shopify connections for your workspace."
-                    />
-                    <Button asChild className="rounded-xl bg-indigo-600 hover:bg-indigo-500">
-                        <Link href={connect()}>
-                            <Plus className="mr-2 size-4" />
-                            Connect store
-                        </Link>
-                    </Button>
-                </div>
+            {showEmptyState ? (
+                <StoreSetupEmptyState />
+            ) : (
+                <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 p-4 md:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <Heading
+                            variant="small"
+                            title="Connected stores"
+                            description="Manage Shopify connections for your workspace."
+                        />
+                        <Button asChild variant="brand">
+                            <Link href={connect()}>
+                                <Plus className="mr-2 size-4" />
+                                Connect store
+                            </Link>
+                        </Button>
+                    </div>
 
-                {stores.length === 0 ? (
-                    <Card className="rounded-2xl border-dashed border-border/70 shadow-[0_4px_20px_-2px_rgb(0_0_0/0.08)]">
-                        <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
-                            <div className="flex size-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                                <Store className="size-7" />
-                            </div>
-                            <div>
-                                <p className="text-lg font-medium text-foreground">No stores connected</p>
-                                <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                                    Connect your Shopify store to sync orders, products, and customers for
-                                    AI-powered operations.
-                                </p>
-                            </div>
-                            <Button asChild className="rounded-xl bg-indigo-600 hover:bg-indigo-500">
-                                <Link href={connect()}>Connect your first store</Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ) : (
                     <div className="grid gap-4">
                         {stores.map((store) => (
                             <Card
@@ -200,8 +184,8 @@ export default function StoresIndex({ stores }: Props) {
                             </Card>
                         ))}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </>
     );
 }

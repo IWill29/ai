@@ -19,7 +19,7 @@ use App\Domains\Chat\Contracts\ChatService;
 use App\Domains\Chat\Services\DefaultChatService;
 use App\Domains\Chat\Services\StubAttachmentUploadService;
 use App\Domains\Dashboard\Contracts\MetricsReader;
-use App\Domains\Dashboard\Services\SyncedMetricsReader;
+use App\Domains\Dashboard\Services\SyncedMetricsReaderAdapter;
 use App\Domains\Stores\Contracts\StoreAdapterFactory;
 use App\Domains\Stores\Services\DefaultSyncService;
 use App\Domains\Stores\Services\StoreAdapterManager;
@@ -43,7 +43,7 @@ class DomainServiceProvider extends ServiceProvider
         AttachmentUploadService::class => StubAttachmentUploadService::class,
         BillingService::class => StubBillingService::class,
         AccountService::class => DefaultAccountService::class,
-        MetricsReader::class => SyncedMetricsReader::class,
+        MetricsReader::class => SyncedMetricsReaderAdapter::class,
     ];
 
     public function register(): void

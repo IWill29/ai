@@ -5,6 +5,22 @@ declare module 'react' {
     interface InputHTMLAttributes<T> {
         passwordrules?: string;
     }
+
+    // Inertia Head deduplication — not a DOM attribute but valid on Head children.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface MetaHTMLAttributes<T> {
+        'head-key'?: string;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface LinkHTMLAttributes<T> {
+        'head-key'?: string;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface ScriptHTMLAttributes<T> {
+        'head-key'?: string;
+    }
 }
 
 declare module '@inertiajs/core' {
@@ -13,6 +29,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            hasConnectedStores: boolean;
             [key: string]: unknown;
         };
     }

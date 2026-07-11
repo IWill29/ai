@@ -14,16 +14,27 @@ Connect your Shopify store via API keys and manage orders, products, and custome
 
 ## Local development
 
+**Docker app (recommended on Windows):**
+
 ```bash
 docker compose up -d
-cp .env.example .env
+cp .env.example .env   # first time only
 php artisan key:generate
 php artisan migrate
+npm run dev            # Vite HMR only — do not run `composer run dev` or `php artisan serve` on the host
+```
+
+- App: http://localhost:8000 (Docker `app` service)
+- Mailpit: http://localhost:8026
+
+**Host PHP app (alternative):** start only infra, then Laravel dev:
+
+```bash
+docker compose up -d pgsql redis mailpit
 composer run dev
 ```
 
-- App: http://localhost:8000
-- Mailpit: http://localhost:8025
+Do not run both Docker `app` and `composer run dev` — they both bind port 8000 and use different database hosts.
 
 ## License
 
