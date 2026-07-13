@@ -24,6 +24,7 @@ interface AgentLlmPort
         array $messages,
         array $tools = [],
         array $fallbackModels = [],
+        string $accountId = '',
     ): LlmResponse;
 
     /**
@@ -32,6 +33,7 @@ interface AgentLlmPort
      * @param  array<int, LlmMessage>  $messages
      * @param  array<int, ToolDefinition>  $tools
      * @param  callable(string): void  $onDelta
+     * @param  array<int, string>  $fallbackModels
      */
     public function stream(
         string $apiKey,
@@ -39,5 +41,7 @@ interface AgentLlmPort
         array $messages,
         array $tools,
         callable $onDelta,
+        string $accountId = '',
+        array $fallbackModels = [],
     ): LlmResponse;
 }

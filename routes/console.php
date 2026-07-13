@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Chat\Jobs\PurgeStaleAttachmentsJob;
 use App\Domains\Stores\Jobs\NightlyReconcileJob;
 use App\Domains\Stores\Jobs\RetryPendingWebhooksJob;
 use Illuminate\Foundation\Inspiring;
@@ -20,3 +21,7 @@ Schedule::job(new RetryPendingWebhooksJob)
     ->withoutOverlapping();
 
 Schedule::command('webhooks:prune')->daily();
+
+Schedule::job(new PurgeStaleAttachmentsJob)
+    ->daily()
+    ->withoutOverlapping();

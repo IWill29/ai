@@ -21,7 +21,12 @@ interface ChatService
     /** @param  array<string, mixed>  $meta */
     public function appendAssistantMessage(string $conversationId, string $content, string $model, array $meta = []): MessageDTO;
 
-    public function recordActionStep(string $messageId, ActionStepDTO $step): void;
+    public function recordActionStep(string $messageId, ActionStepDTO $step): string;
+
+    /** @param array<string, mixed> $meta */
+    public function updateAssistantContent(string $messageId, string $content, array $meta = []): void;
+
+    public function updateConversationModel(string $conversationId, string $model): void;
 
     /** @return array<int, MessageDTO> */
     public function getHistory(string $conversationId): array;
