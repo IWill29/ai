@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Domains\Chat\Models\ActionStep;
 use App\Domains\Chat\Models\Conversation;
+use App\Domains\Chat\Models\MessageAttachment;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Domains\Stores\Policies\StoreConnectionPolicy;
 use App\Policies\ConversationPolicy;
+use App\Policies\MessageAttachmentPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
@@ -51,12 +54,52 @@ class AppServiceProvider extends ServiceProvider
                 ->whereKey($value)
                 ->firstOrFail();
         });
+
+        Route::bind('conversation', function (string $value): Conversation {
+            $user = auth()->user();
+
+            if ($user === null || $user->account_id === null) {
+                abort(403);
+            }
+
+            return Conversation::query()
+                ->where('account_id', $user->account_id)
+                ->whereKey($value)
+                ->firstOrFail();
+        });
+
+        Route::bind('actionStep', function (string $value): ActionStep {
+            $user = auth()->user();
+
+            if ($user === null || $user->account_id === null) {
+                abort(403);
+            }
+
+            return ActionStep::query()
+                ->whereKey($value)
+                ->whereHas('message.conversation', fn ($query) => $query->where('account_id', $user->account_id))
+                ->firstOrFail();
+        });
+
+        Route::bind('attachment', function (string $value): MessageAttachment {
+            $user = auth()->user();
+
+            if ($user === null || $user->account_id === null) {
+                abort(403);
+            }
+
+            return MessageAttachment::query()
+                ->where('account_id', $user->account_id)
+                ->whereKey($value)
+                ->firstOrFail();
+        });
     }
 
     protected function configurePolicies(): void
     {
         Gate::policy(Conversation::class, ConversationPolicy::class);
         Gate::policy(StoreConnection::class, StoreConnectionPolicy::class);
+        Gate::policy(MessageAttachment::class, MessageAttachmentPolicy::class);
     }
 
     /**

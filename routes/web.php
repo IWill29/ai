@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\Chat\AgentStreamController;
+use App\Http\Controllers\Chat\AttachmentController;
 use App\Http\Controllers\Chat\ChatController;
+use App\Http\Controllers\Chat\ConfirmationController;
+use App\Http\Controllers\Chat\ConversationController;
+use App\Http\Controllers\Chat\ModelAllowListController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Settings\OpenRouterController;
@@ -21,6 +26,21 @@ Route::post('/webhooks/shopify/{storeConnectionId}', [ShopifyWebhookController::
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('agent/models', ModelAllowListController::class)->name('agent.models');
+    Route::post('conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::post('conversations/{conversation}/stream', [AgentStreamController::class, 'store'])
+        ->middleware('throttle:agent')
+        ->name('conversations.stream');
+    Route::post('conversations/{conversation}/stream/resume', [AgentStreamController::class, 'resume'])
+        ->middleware('throttle:agent')
+        ->name('conversations.stream.resume');
+    Route::post('action-steps/{actionStep}/confirm', [ConfirmationController::class, 'store'])
+        ->name('action-steps.confirm');
+    Route::post('attachments', [AttachmentController::class, 'store'])
+        ->middleware('throttle:attachments')
+        ->name('attachments.store');
+    Route::get('attachments/{attachment}/preview', [AttachmentController::class, 'preview'])
+        ->name('attachments.preview');
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('stores', [StoreController::class, 'index'])->name('stores.index');
     Route::get('stores/connect', [ConnectStoreController::class, 'create'])->name('stores.connect');
