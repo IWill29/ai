@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesAgentFixtures;
 use Tests\Concerns\SeedsPlans;
+use Tests\Support\AgentTestData;
 use Tests\TestCase;
 
 class AgentBillingTest extends TestCase
@@ -48,13 +49,13 @@ class AgentBillingTest extends TestCase
                         new ToolCall(
                             id: 'call_fulfill_1',
                             name: 'fulfill_order',
-                            arguments: ['external_id' => 'gid://shopify/Order/1'],
+                            arguments: ['external_id' => AgentTestData::ORDER_1],
                         ),
                     ],
                     finishReason: 'tool_calls',
                     promptTokens: 10,
                     completionTokens: 2,
-                    model: 'openai/gpt-4o-mini',
+                    model: AgentTestData::DEFAULT_MODEL,
                 ));
         });
 

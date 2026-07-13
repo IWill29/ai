@@ -10,6 +10,7 @@ use App\Domains\Stores\Enums\Platform;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Tests\Support\AgentTestData;
 
 trait CreatesAgentFixtures
 {
@@ -31,7 +32,7 @@ trait CreatesAgentFixtures
             'account_id' => $user->account_id,
             'user_id' => $user->id,
             'store_connection_id' => $store->id,
-            'model' => 'openai/gpt-4o-mini',
+            'model' => AgentTestData::DEFAULT_MODEL,
         ], $attributes));
     }
 
@@ -40,7 +41,7 @@ trait CreatesAgentFixtures
         return OpenRouterCredential::query()->create(array_merge([
             'account_id' => $user->account_id,
             'api_key' => 'sk-or-v1-test-key-abcdefghij',
-            'default_model' => 'openai/gpt-4o-mini',
+            'default_model' => AgentTestData::DEFAULT_MODEL,
             'validated_at' => Carbon::now(),
         ], $attributes));
     }

@@ -21,6 +21,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\Concerns\CreatesAgentFixtures;
 use Tests\Concerns\SeedsPlans;
+use Tests\Support\AgentTestData;
 use Tests\TestCase;
 
 class AgentStreamTest extends TestCase
@@ -49,7 +50,9 @@ class AgentStreamTest extends TestCase
         $this->mock(AgentLlmPort::class, function ($mock): void {
             $mock->shouldReceive('stream')
                 ->once()
-                ->andReturnUsing(function ($apiKey, $model, $messages, $tools, $onDelta) {
+                ->andReturnUsing(function (...$args) {
+                    $model = $args[1];
+                    $onDelta = $args[4];
                     $onDelta('Hello');
 
                     return new LlmResponse(
@@ -79,24 +82,7 @@ class AgentStreamTest extends TestCase
         $this->createOpenRouterCredential($user);
         $conversation = $this->createConversation($user, $store);
 
-        $this->mock(AgentLlmPort::class, function ($mock): void {
-            $mock->shouldReceive('stream')
-                ->once()
-                ->andReturn(new LlmResponse(
-                    content: null,
-                    toolCalls: [
-                        new ToolCall(
-                            id: 'call_fulfill_1',
-                            name: 'fulfill_order',
-                            arguments: ['external_id' => 'gid://shopify/Order/1'],
-                        ),
-                    ],
-                    finishReason: 'tool_calls',
-                    promptTokens: 10,
-                    completionTokens: 2,
-                    model: 'openai/gpt-4o-mini',
-                ));
-        });
+        $this->mockFulfillOrderLlm();
 
         $response = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
             'message' => 'Fulfill order 1',
@@ -117,24 +103,7 @@ class AgentStreamTest extends TestCase
         $this->createOpenRouterCredential($user);
         $conversation = $this->createConversation($user, $store);
 
-        $this->mock(AgentLlmPort::class, function ($mock): void {
-            $mock->shouldReceive('stream')
-                ->once()
-                ->andReturn(new LlmResponse(
-                    content: null,
-                    toolCalls: [
-                        new ToolCall(
-                            id: 'call_fulfill_1',
-                            name: 'fulfill_order',
-                            arguments: ['external_id' => 'gid://shopify/Order/1'],
-                        ),
-                    ],
-                    finishReason: 'tool_calls',
-                    promptTokens: 10,
-                    completionTokens: 2,
-                    model: 'openai/gpt-4o-mini',
-                ));
-        });
+        $this->mockFulfillOrderLlm();
 
         $response = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
             'message' => 'Fulfill order 1',
@@ -146,7 +115,7 @@ class AgentStreamTest extends TestCase
         $step = ActionStep::query()->firstOrFail();
 
         $orderDto = new OrderDTO(
-            externalId: 'gid://shopify/Order/1',
+            externalId: AgentTestData::ORDER_1,
             orderNumber: '#1',
             financialStatus: 'paid',
             fulfillmentStatus: 'fulfilled',
@@ -160,7 +129,7 @@ class AgentStreamTest extends TestCase
         $storePort = Mockery::mock(StorePort::class);
         $storePort->shouldReceive('fulfillOrder')
             ->once()
-            ->with('gid://shopify/Order/1', null)
+            ->with(AgentTestData::ORDER_1, null)
             ->andReturn($orderDto);
 
         $factory = Mockery::mock(StoreAdapterFactory::class);
@@ -192,7 +161,7 @@ class AgentStreamTest extends TestCase
                     finishReason: 'stop',
                     promptTokens: 10,
                     completionTokens: 2,
-                    model: 'openai/gpt-4o-mini',
+                    model: AgentTestData::DEFAULT_MODEL,
                 ));
         });
 
@@ -242,5 +211,27 @@ class AgentStreamTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    private function mockFulfillOrderLlm(): void
+    {
+        $this->mock(AgentLlmPort::class, function ($mock): void {
+            $mock->shouldReceive('stream')
+                ->once()
+                ->andReturn(new LlmResponse(
+                    content: null,
+                    toolCalls: [
+                        new ToolCall(
+                            id: 'call_fulfill_1',
+                            name: 'fulfill_order',
+                            arguments: ['external_id' => AgentTestData::ORDER_1],
+                        ),
+                    ],
+                    finishReason: 'tool_calls',
+                    promptTokens: 10,
+                    completionTokens: 2,
+                    model: AgentTestData::DEFAULT_MODEL,
+                ));
+        });
     }
 }

@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Http;
 
 final class OpenRouterAdapter implements AgentLlmPort
 {
+    public function __construct(
+        private readonly OpenRouterSseParser $sseParser,
+    ) {}
+
     public function chat(
         string $apiKey,
         string $model,
@@ -57,78 +61,19 @@ final class OpenRouterAdapter implements AgentLlmPort
             stream: true,
         );
 
-        $body = $response->toPsrResponse()->getBody();
-        $content = '';
-        $toolCalls = [];
-        $finishReason = null;
-        $promptTokens = null;
-        $completionTokens = null;
-        $resolvedModel = $model;
-        $buffer = '';
-
-        while (! $body->eof()) {
-            $buffer .= $body->read(1024);
-
-            while (($newlinePos = strpos($buffer, "\n")) !== false) {
-                $line = trim(substr($buffer, 0, $newlinePos));
-                $buffer = substr($buffer, $newlinePos + 1);
-
-                if ($line === '' || ! str_starts_with($line, 'data:')) {
-                    continue;
-                }
-
-                $payload = trim(substr($line, 5));
-
-                if ($payload === '[DONE]') {
-                    break 2;
-                }
-
-                /** @var array<string, mixed>|null $chunk */
-                $chunk = json_decode($payload, true);
-
-                if (! is_array($chunk)) {
-                    continue;
-                }
-
-                if (isset($chunk['model']) && is_string($chunk['model'])) {
-                    $resolvedModel = $chunk['model'];
-                }
-
-                $choice = $chunk['choices'][0] ?? null;
-
-                if (! is_array($choice)) {
-                    continue;
-                }
-
-                $delta = $choice['delta'] ?? [];
-
-                if (is_array($delta) && isset($delta['content']) && is_string($delta['content']) && $delta['content'] !== '') {
-                    $content .= $delta['content'];
-                    $onDelta($delta['content']);
-                }
-
-                if (is_array($delta) && isset($delta['tool_calls']) && is_array($delta['tool_calls'])) {
-                    $toolCalls = $this->mergeToolCallDeltas($toolCalls, $delta['tool_calls']);
-                }
-
-                if (isset($choice['finish_reason']) && is_string($choice['finish_reason'])) {
-                    $finishReason = $choice['finish_reason'];
-                }
-
-                if (isset($chunk['usage']) && is_array($chunk['usage'])) {
-                    $promptTokens = isset($chunk['usage']['prompt_tokens']) ? (int) $chunk['usage']['prompt_tokens'] : $promptTokens;
-                    $completionTokens = isset($chunk['usage']['completion_tokens']) ? (int) $chunk['usage']['completion_tokens'] : $completionTokens;
-                }
-            }
-        }
+        $parsed = $this->sseParser->parse(
+            $response->toPsrResponse()->getBody(),
+            $model,
+            $onDelta,
+        );
 
         return new LlmResponse(
-            content: $content !== '' ? $content : null,
-            toolCalls: $this->normalizeToolCalls($toolCalls),
-            finishReason: $finishReason,
-            promptTokens: $promptTokens,
-            completionTokens: $completionTokens,
-            model: $resolvedModel,
+            content: $parsed['content'] !== '' ? $parsed['content'] : null,
+            toolCalls: $this->normalizeToolCalls($parsed['toolCalls']),
+            finishReason: $parsed['finishReason'],
+            promptTokens: $parsed['promptTokens'],
+            completionTokens: $parsed['completionTokens'],
+            model: $parsed['model'],
         );
     }
 
@@ -316,38 +261,5 @@ final class OpenRouterAdapter implements AgentLlmPort
         }
 
         return $normalized;
-    }
-
-    /** @param array<int, mixed> $existing @param array<int, mixed> $deltas */
-    private function mergeToolCallDeltas(array $existing, array $deltas): array
-    {
-        foreach ($deltas as $delta) {
-            if (! is_array($delta)) {
-                continue;
-            }
-
-            $index = $delta['index'] ?? count($existing);
-
-            if (! isset($existing[$index])) {
-                $existing[$index] = [
-                    'id' => '',
-                    'function' => ['name' => '', 'arguments' => ''],
-                ];
-            }
-
-            if (isset($delta['id'])) {
-                $existing[$index]['id'] = $delta['id'];
-            }
-
-            if (isset($delta['function']['name'])) {
-                $existing[$index]['function']['name'] = $delta['function']['name'];
-            }
-
-            if (isset($delta['function']['arguments'])) {
-                $existing[$index]['function']['arguments'] .= $delta['function']['arguments'];
-            }
-        }
-
-        return array_values($existing);
     }
 }

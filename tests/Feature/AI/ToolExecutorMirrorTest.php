@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\Concerns\CreatesAgentFixtures;
 use Tests\Concerns\SeedsPlans;
+use Tests\Support\AgentTestData;
 use Tests\TestCase;
 
 class ToolExecutorMirrorTest extends TestCase
@@ -35,7 +36,7 @@ class ToolExecutorMirrorTest extends TestCase
 
         SyncedOrder::query()->create([
             'store_connection_id' => $store->id,
-            'external_id' => 'gid://shopify/Order/100',
+            'external_id' => AgentTestData::ORDER_100,
             'order_number' => '#1001',
             'financial_status' => 'paid',
             'fulfillment_status' => 'unfulfilled',

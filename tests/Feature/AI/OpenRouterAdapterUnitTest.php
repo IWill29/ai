@@ -6,6 +6,7 @@ namespace Tests\Feature\AI;
 
 use App\Domains\AI\DTOs\LlmMessage;
 use App\Domains\AI\Services\OpenRouterAdapter;
+use App\Domains\AI\Support\OpenRouterModels;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -18,7 +19,7 @@ class OpenRouterAdapterUnitTest extends TestCase
     {
         Http::fake([
             'openrouter.ai/*' => Http::response([
-                'model' => 'openai/gpt-4o-mini',
+                'model' => OpenRouterModels::GPT_4O_MINI,
                 'choices' => [
                     [
                         'message' => ['role' => 'assistant', 'content' => 'OK'],
@@ -31,7 +32,7 @@ class OpenRouterAdapterUnitTest extends TestCase
 
         $response = app(OpenRouterAdapter::class)->chat(
             apiKey: 'sk-or-v1-merchant-specific-key',
-            model: 'openai/gpt-4o-mini',
+            model: OpenRouterModels::GPT_4O_MINI,
             messages: [new LlmMessage(role: 'user', content: 'Hello')],
         );
 

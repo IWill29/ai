@@ -20,9 +20,11 @@ use App\Domains\Stores\Models\SyncedOrder;
 use App\Models\User;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Mockery;
 use Tests\Concerns\CreatesAgentFixtures;
 use Tests\Concerns\SeedsPlans;
+use Tests\Support\AgentTestData;
 use Tests\TestCase;
 
 /**
@@ -46,14 +48,75 @@ class AgentScenarioTest extends TestCase
 
     public function test_full_agent_happy_path_scenario(): void
     {
-        // --- Setup (prerequisites) ---
         $user = User::factory()->create();
         $store = $this->createStoreForUser($user);
         $this->createOpenRouterCredential($user);
+        $this->seedUnfulfilledOrder($store->id);
 
+        $this->assertModelAllowList($user);
+        $conversationId = $this->createConversationForStore($user, $store->id);
+
+        $this->mockReadThenAnswerLlm();
+        $this->assertReadStreamCompletes($user, $conversationId);
+
+        $counter = UsageCounter::query()->where('account_id', $user->account_id)->first();
+        $this->assertNotNull($counter);
+        $this->assertSame(1, $counter->agent_messages);
+
+        $this->resetAgentContainer();
+        $this->mockFulfillOrderLlm(AgentTestData::ORDER_100);
+        $step = $this->assertWriteStreamPauses($user, $conversationId);
+        $this->assertSame(1, UsageCounter::query()->where('account_id', $user->account_id)->value('agent_messages'));
+
+        $this->confirmFulfillment($user, $step, AgentTestData::ORDER_100);
+
+        $this->resetAgentContainer();
+        $this->mockResumeAnswerLlm();
+        $this->assertResumeStreamCompletes($user, $conversationId);
+
+        $counter->refresh();
+        $this->assertSame(2, $counter->agent_messages);
+    }
+
+    public function test_declined_write_scenario_has_no_audit_log(): void
+    {
+        $user = User::factory()->create();
+        $store = $this->createStoreForUser($user);
+        $this->createOpenRouterCredential($user);
+        $conversation = $this->createConversation($user, $store);
+
+        $this->mockFulfillOrderLlm(AgentTestData::ORDER_200);
+
+        $declineStream = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
+            'message' => 'Fulfill order 200',
+        ]);
+
+        $declineStream->assertOk();
+        $this->assertStringContainsString('confirmation_required', $declineStream->streamedContent());
+
+        $step = ActionStep::query()->where('tool_name', 'fulfill_order')->firstOrFail();
+
+        $storePort = Mockery::mock(StorePort::class);
+        $storePort->shouldNotReceive('fulfillOrder');
+        $factory = Mockery::mock(StoreAdapterFactory::class);
+        $factory->shouldReceive('for')->andReturn($storePort);
+        $this->instance(StoreAdapterFactory::class, $factory);
+
+        $this->actingAs($user)->postJson(route('action-steps.confirm', $step), [
+            'confirmed' => false,
+        ])->assertOk();
+
+        $step->refresh();
+        $this->assertSame(StepStatus::Failed->value, $step->status);
+        $this->assertFalse($step->confirmed);
+        $this->assertSame(0, AuditLog::query()->count());
+    }
+
+    private function seedUnfulfilledOrder(string $storeId): void
+    {
         SyncedOrder::query()->create([
-            'store_connection_id' => $store->id,
-            'external_id' => 'gid://shopify/Order/100',
+            'store_connection_id' => $storeId,
+            'external_id' => AgentTestData::ORDER_100,
             'order_number' => '#1001',
             'financial_status' => 'paid',
             'fulfillment_status' => 'unfulfilled',
@@ -61,31 +124,41 @@ class AgentScenarioTest extends TestCase
             'currency' => 'EUR',
             'placed_at' => now(),
         ]);
+    }
 
-        // --- A1: model allow-list ---
+    private function assertModelAllowList(User $user): void
+    {
         $this->actingAs($user)
             ->getJson(route('agent.models'))
             ->assertOk()
             ->assertJsonStructure(['tiers' => [['tier', 'models']]])
             ->assertJsonPath('tiers.0.tier', 'Budget');
+    }
 
-        // --- A2: create conversation ---
-        $conversationResponse = $this->actingAs($user)->postJson(route('conversations.store'), [
-            'store_connection_id' => $store->id,
-            'model' => 'openai/gpt-4o-mini',
+    private function createConversationForStore(User $user, string $storeId): string
+    {
+        $response = $this->actingAs($user)->postJson(route('conversations.store'), [
+            'store_connection_id' => $storeId,
+            'model' => AgentTestData::DEFAULT_MODEL,
         ]);
 
-        $conversationResponse->assertOk();
-        $conversationId = $conversationResponse->json('conversation.id');
+        $response->assertOk();
+        $conversationId = $response->json('conversation.id');
         $this->assertNotEmpty($conversationId);
 
-        // --- A3: read flow (list_orders → answer) ---
+        return $conversationId;
+    }
+
+    private function mockReadThenAnswerLlm(): void
+    {
         $this->mock(AgentLlmPort::class, function ($mock): void {
             $call = 0;
             $mock->shouldReceive('stream')
                 ->twice()
-                ->andReturnUsing(function ($apiKey, $model, $messages, $tools, $onDelta) use (&$call) {
+                ->andReturnUsing(function (...$args) use (&$call) {
                     $call++;
+                    $model = $args[1];
+                    $onDelta = $args[4];
 
                     if ($call === 1) {
                         return new LlmResponse(
@@ -116,7 +189,10 @@ class AgentScenarioTest extends TestCase
                     );
                 });
         });
+    }
 
+    private function assertReadStreamCompletes(User $user, string $conversationId): void
+    {
         $readStream = $this->actingAs($user)->post(route('conversations.stream', $conversationId), [
             'message' => 'List unfulfilled orders',
         ]);
@@ -133,15 +209,11 @@ class AgentScenarioTest extends TestCase
             'tool_name' => 'list_orders',
             'status' => StepStatus::Done->value,
         ]);
+    }
 
-        $counter = UsageCounter::query()->where('account_id', $user->account_id)->first();
-        $this->assertNotNull($counter);
-        $this->assertSame(1, $counter->agent_messages);
-
-        // --- B2: write flow pauses for confirmation ---
-        $this->resetAgentContainer();
-
-        $this->mock(AgentLlmPort::class, function ($mock): void {
+    private function mockFulfillOrderLlm(string $orderExternalId): void
+    {
+        $this->mock(AgentLlmPort::class, function ($mock) use ($orderExternalId): void {
             $mock->shouldReceive('stream')
                 ->once()
                 ->andReturn(new LlmResponse(
@@ -150,16 +222,19 @@ class AgentScenarioTest extends TestCase
                         new ToolCall(
                             id: 'call_fulfill_1',
                             name: 'fulfill_order',
-                            arguments: ['external_id' => 'gid://shopify/Order/100'],
+                            arguments: ['external_id' => $orderExternalId],
                         ),
                     ],
                     finishReason: 'tool_calls',
                     promptTokens: 15,
                     completionTokens: 3,
-                    model: 'openai/gpt-4o-mini',
+                    model: AgentTestData::DEFAULT_MODEL,
                 ));
         });
+    }
 
+    private function assertWriteStreamPauses(User $user, string $conversationId): ActionStep
+    {
         $writeStream = $this->actingAs($user)->post(route('conversations.stream', $conversationId), [
             'message' => 'Fulfill order 100',
         ]);
@@ -169,19 +244,16 @@ class AgentScenarioTest extends TestCase
         $this->assertStringContainsString('event: confirmation_required', $writeBody);
         $this->assertStringContainsString('"status":"awaiting_confirmation"', $writeBody);
 
-        $step = ActionStep::query()
+        return ActionStep::query()
             ->where('tool_name', 'fulfill_order')
             ->where('status', StepStatus::AwaitingConfirmation->value)
             ->firstOrFail();
+    }
 
-        $messagesAfterPause = UsageCounter::query()
-            ->where('account_id', $user->account_id)
-            ->value('agent_messages');
-        $this->assertSame(1, $messagesAfterPause);
-
-        // --- B4: confirm write ---
+    private function confirmFulfillment(User $user, ActionStep $step, string $orderExternalId): void
+    {
         $orderDto = new OrderDTO(
-            externalId: 'gid://shopify/Order/100',
+            externalId: $orderExternalId,
             orderNumber: '#1001',
             financialStatus: 'paid',
             fulfillmentStatus: 'fulfilled',
@@ -195,7 +267,7 @@ class AgentScenarioTest extends TestCase
         $storePort = Mockery::mock(StorePort::class);
         $storePort->shouldReceive('fulfillOrder')
             ->once()
-            ->with('gid://shopify/Order/100', null)
+            ->with($orderExternalId, null)
             ->andReturn($orderDto);
 
         $factory = Mockery::mock(StoreAdapterFactory::class);
@@ -213,14 +285,16 @@ class AgentScenarioTest extends TestCase
             'account_id' => $user->account_id,
             'action' => 'tool.fulfill_order',
         ]);
+    }
 
-        // --- B5: resume stream completes turn ---
-        $this->resetAgentContainer();
-
+    private function mockResumeAnswerLlm(): void
+    {
         $this->mock(AgentLlmPort::class, function ($mock): void {
             $mock->shouldReceive('stream')
                 ->once()
-                ->andReturnUsing(function ($apiKey, $model, $messages, $tools, $onDelta) {
+                ->andReturnUsing(function (...$args) {
+                    $model = $args[1];
+                    $onDelta = $args[4];
                     $onDelta('Order fulfilled successfully.');
 
                     return new LlmResponse(
@@ -233,7 +307,10 @@ class AgentScenarioTest extends TestCase
                     );
                 });
         });
+    }
 
+    private function assertResumeStreamCompletes(User $user, string $conversationId): TestResponse
+    {
         $resumeStream = $this->actingAs($user)->post(route('conversations.stream.resume', $conversationId));
 
         $resumeBody = $resumeStream->streamedContent();
@@ -241,59 +318,7 @@ class AgentScenarioTest extends TestCase
         $this->assertStringContainsString('event: text_delta', $resumeBody);
         $this->assertStringContainsString('"status":"completed"', $resumeBody);
 
-        $counter->refresh();
-        $this->assertSame(2, $counter->agent_messages);
-    }
-
-    public function test_declined_write_scenario_has_no_audit_log(): void
-    {
-        $user = User::factory()->create();
-        $store = $this->createStoreForUser($user);
-        $this->createOpenRouterCredential($user);
-        $conversation = $this->createConversation($user, $store);
-
-        $this->mock(AgentLlmPort::class, function ($mock): void {
-            $mock->shouldReceive('stream')
-                ->once()
-                ->andReturn(new LlmResponse(
-                    content: null,
-                    toolCalls: [
-                        new ToolCall(
-                            id: 'call_fulfill_decline',
-                            name: 'fulfill_order',
-                            arguments: ['external_id' => 'gid://shopify/Order/200'],
-                        ),
-                    ],
-                    finishReason: 'tool_calls',
-                    promptTokens: 10,
-                    completionTokens: 2,
-                    model: 'openai/gpt-4o-mini',
-                ));
-        });
-
-        $declineStream = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Fulfill order 200',
-        ]);
-
-        $declineStream->assertOk();
-        $this->assertStringContainsString('confirmation_required', $declineStream->streamedContent());
-
-        $step = ActionStep::query()->where('tool_name', 'fulfill_order')->firstOrFail();
-
-        $storePort = Mockery::mock(StorePort::class);
-        $storePort->shouldNotReceive('fulfillOrder');
-        $factory = Mockery::mock(StoreAdapterFactory::class);
-        $factory->shouldReceive('for')->andReturn($storePort);
-        $this->instance(StoreAdapterFactory::class, $factory);
-
-        $this->actingAs($user)->postJson(route('action-steps.confirm', $step), [
-            'confirmed' => false,
-        ])->assertOk();
-
-        $step->refresh();
-        $this->assertSame(StepStatus::Failed->value, $step->status);
-        $this->assertFalse($step->confirmed);
-        $this->assertSame(0, AuditLog::query()->count());
+        return $resumeStream;
     }
 
     private function resetAgentContainer(): void
