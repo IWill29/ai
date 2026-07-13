@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Storage;
 
 final class AttachmentResolver
 {
-    /** @return array<int, ProductImageInput> */
+    /**
+     * @param  array<int, string>  $attachmentIds
+     * @return array<int, ProductImageInput>
+     */
     public function resolveForStore(string $accountId, array $attachmentIds): array
     {
         if ($attachmentIds === []) {
@@ -51,7 +54,10 @@ final class AttachmentResolver
         }
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<int, string>
+     */
     public function imagePreviews(string $accountId, array $args): array
     {
         if (! isset($args['image_attachment_ids']) || ! is_array($args['image_attachment_ids'])) {

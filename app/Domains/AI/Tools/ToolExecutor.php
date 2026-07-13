@@ -112,7 +112,10 @@ final class ToolExecutor
         return $this->serializeWriteResult($result);
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function deleteProduct(StorePort $storePort, array $args): array
     {
         $storePort->deleteProduct($args['external_id']);
@@ -120,7 +123,10 @@ final class ToolExecutor
         return ['deleted' => true, 'external_id' => $args['external_id']];
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function updateInventory(StorePort $storePort, array $args): array
     {
         $storePort->updateInventory(

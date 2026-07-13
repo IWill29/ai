@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property array<string, mixed>|null $arguments
+ * @property array<string, mixed>|null $result_summary
+ */
 class ActionStep extends Model
 {
     use HasUuids;

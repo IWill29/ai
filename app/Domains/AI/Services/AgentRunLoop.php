@@ -126,7 +126,10 @@ final class AgentRunLoop
         );
     }
 
-    /** @param array<int, ToolCall> $toolCalls @return array{0: array<int, ToolCall>, 1: array<int, ToolCall>} */
+    /**
+     * @param  array<int, ToolCall>  $toolCalls
+     * @return array{0: array<int, ToolCall>, 1: array<int, ToolCall>}
+     */
     private function partitionToolCalls(array $toolCalls): array
     {
         $readCalls = [];

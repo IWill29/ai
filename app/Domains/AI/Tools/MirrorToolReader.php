@@ -37,7 +37,10 @@ final class MirrorToolReader
         };
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function listOrders(StoreConnection $store, array $args): array
     {
         $limit = min((int) ($args['limit'] ?? 25), 50);
@@ -76,7 +79,10 @@ final class MirrorToolReader
         return ['items' => $orders, 'count' => count($orders)];
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function getOrder(StoreConnection $store, array $args): array
     {
         $order = SyncedOrder::query()
@@ -87,7 +93,10 @@ final class MirrorToolReader
         return $this->serializeOrder($order, detailed: true);
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function listProducts(StoreConnection $store, array $args): array
     {
         $limit = min((int) ($args['limit'] ?? 25), 50);
@@ -113,7 +122,10 @@ final class MirrorToolReader
         return ['items' => $products, 'count' => count($products)];
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function getProduct(StoreConnection $store, array $args): array
     {
         $product = SyncedProduct::query()
@@ -125,7 +137,10 @@ final class MirrorToolReader
         return $this->serializeProduct($product, detailed: true);
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function listCustomers(StoreConnection $store, array $args): array
     {
         $limit = min((int) ($args['limit'] ?? 25), 50);
@@ -150,7 +165,10 @@ final class MirrorToolReader
         return ['items' => $customers, 'count' => count($customers)];
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function getCustomer(StoreConnection $store, array $args): array
     {
         $customer = SyncedCustomer::query()
@@ -161,7 +179,10 @@ final class MirrorToolReader
         return $this->serializeCustomer($customer, detailed: true);
     }
 
-    /** @param array<string, mixed> $args */
+    /**
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
     private function getMetrics(StoreConnection $store, array $args): array
     {
         $from = new DateTimeImmutable($args['from']);

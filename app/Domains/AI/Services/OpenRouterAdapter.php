@@ -158,7 +158,10 @@ final class OpenRouterAdapter implements AgentLlmPort
         );
     }
 
-    /** @param array<int, LlmMessage> $messages */
+    /**
+     * @param  array<int, LlmMessage>  $messages
+     * @return array<int, array<string, mixed>>
+     */
     private function serializeMessages(array $messages): array
     {
         return array_map(function (LlmMessage $message): array {
@@ -213,7 +216,10 @@ final class OpenRouterAdapter implements AgentLlmPort
         }, $messages);
     }
 
-    /** @param array<int, ToolDefinition> $tools */
+    /**
+     * @param  array<int, ToolDefinition>  $tools
+     * @return array<int, array<string, mixed>>
+     */
     private function serializeTools(array $tools): array
     {
         return array_map(
@@ -229,7 +235,10 @@ final class OpenRouterAdapter implements AgentLlmPort
         );
     }
 
-    /** @param array<int, mixed> $rawToolCalls */
+    /**
+     * @param  array<int, mixed>  $rawToolCalls
+     * @return array<int, ToolCall>
+     */
     private function normalizeToolCalls(array $rawToolCalls): array
     {
         $normalized = [];

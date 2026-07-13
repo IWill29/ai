@@ -26,7 +26,10 @@ final class AgentMessageHistoryBuilder
     /** @return array<int, LlmMessage> */
     public function build(Conversation $conversation, ?MessageDTO $latestUser = null): array
     {
-        $memories = $this->memory->recall($conversation->account_id, '');
+        $memories = array_map(
+            fn (array $memory): string => $memory['content'],
+            $this->memory->recall($conversation->account_id, ''),
+        );
         $messages = [
             new LlmMessage(
                 role: MessageRole::System->value,
@@ -90,13 +93,19 @@ final class AgentMessageHistoryBuilder
     {
         $messageModel = Message::query()->find($messageId);
 
-        if ($messageModel === null || ! is_array($messageModel->meta['tool_calls'] ?? null)) {
+        if ($messageModel === null) {
+            return [];
+        }
+
+        $toolCalls = $messageModel->meta['tool_calls'] ?? null;
+
+        if (! is_array($toolCalls)) {
             return [];
         }
 
         $storedToolCalls = [];
 
-        foreach ($messageModel->meta['tool_calls'] as $stored) {
+        foreach ($toolCalls as $stored) {
             if (! is_array($stored)) {
                 continue;
             }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domains\AI\Services;
 
+use Psr\Http\Message\StreamInterface;
+
 final class OpenRouterSseParser
 {
     /**
@@ -16,7 +18,7 @@ final class OpenRouterSseParser
      *     model: string,
      * }
      */
-    public function parse(object $body, string $model, callable $onDelta): array
+    public function parse(StreamInterface $body, string $model, callable $onDelta): array
     {
         $content = '';
         $toolCalls = [];
@@ -137,7 +139,11 @@ final class OpenRouterSseParser
             + ['resolvedModel' => $resolvedModel];
     }
 
-    /** @param array<int, mixed> $existing @param array<int, mixed> $deltas */
+    /**
+     * @param  array<int, mixed>  $existing
+     * @param  array<int, mixed>  $deltas
+     * @return array<int, mixed>
+     */
     private function mergeToolCallDeltas(array $existing, array $deltas): array
     {
         foreach ($deltas as $delta) {
