@@ -19,7 +19,7 @@ class RegistrationCreatesAccountTest extends TestCase
             'email' => 'merchant@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('verification.notice', absolute: false));
 
         $user = User::query()->firstWhere('email', 'merchant@example.com');
 

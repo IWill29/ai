@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -16,10 +16,24 @@ type Props = {
     canResetPassword: boolean;
 };
 
+type SharedProps = {
+    flash?: {
+        error?: string;
+    };
+};
+
 export default function Login({ status, canResetPassword }: Props) {
+    const { flash } = usePage<SharedProps>().props;
+
     return (
         <>
             <Head title="Log in" />
+
+            {flash?.error && (
+                <div className="mb-4 text-center text-sm font-medium text-destructive">
+                    {flash.error}
+                </div>
+            )}
 
             <Form
                 {...store.form()}

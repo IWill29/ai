@@ -1,5 +1,5 @@
-import { LayoutGrid, MessageSquare, Sparkles, Store  } from 'lucide-react';
-import type {LucideIcon} from 'lucide-react';
+import { LayoutGrid, MessageSquare, Sparkles, Store } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
 import {
     ByokFeatureMockup,
@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 
 type FeatureMockup = ComponentType<{ className?: string }>;
 
+type FeatureLayout = 'featured' | 'wide' | 'stack';
+
 const FEATURES: Array<{
     id: string;
     title: string;
@@ -20,6 +22,7 @@ const FEATURES: Array<{
     icon: LucideIcon;
     Mockup: FeatureMockup;
     bento: string;
+    layout: FeatureLayout;
 }> = [
     {
         id: 'chat',
@@ -27,7 +30,8 @@ const FEATURES: Array<{
         body: 'Ask "fulfill order #1042" or "update stock for SKU-12". The agent shows a live action trace and asks before every write.',
         icon: MessageSquare,
         Mockup: ChatFeatureMockup,
-        bento: 'sm:col-span-2 lg:col-span-2 lg:row-span-2',
+        bento: 'sm:col-span-2 lg:col-span-2',
+        layout: 'featured',
     },
     {
         id: 'dashboard',
@@ -36,6 +40,7 @@ const FEATURES: Array<{
         icon: LayoutGrid,
         Mockup: DashboardFeatureMockup,
         bento: 'sm:col-span-1 lg:col-span-1',
+        layout: 'stack',
     },
     {
         id: 'shopify',
@@ -44,6 +49,7 @@ const FEATURES: Array<{
         icon: Store,
         Mockup: ShopifyFeatureMockup,
         bento: 'sm:col-span-1 lg:col-span-1',
+        layout: 'stack',
     },
     {
         id: 'byok',
@@ -51,9 +57,37 @@ const FEATURES: Array<{
         body: 'Bring your own OpenRouter API key. We never bill you for tokens — flat plans cover the platform.',
         icon: Sparkles,
         Mockup: ByokFeatureMockup,
-        bento: 'sm:col-span-2 lg:col-span-3',
+        bento: 'sm:col-span-2 lg:col-span-2',
+        layout: 'wide',
     },
 ];
+
+function mockupClassName(layout: FeatureLayout): string {
+    const base = 'w-full shrink-0';
+
+    switch (layout) {
+        case 'featured':
+            return cn(
+                base,
+                'mx-auto h-[9rem] max-h-[9rem] max-w-[14rem]',
+                'sm:h-[9.5rem] sm:max-h-[9.5rem] sm:max-w-[16rem]',
+                'lg:mx-0 lg:h-[11rem] lg:max-h-[11rem] lg:max-w-none',
+            );
+        case 'wide':
+            return cn(
+                base,
+                'mx-auto h-[9rem] max-h-[9rem] max-w-[14rem]',
+                'sm:max-w-[16rem]',
+                'md:mx-0 md:h-[9.5rem] md:max-h-[9.5rem] md:max-w-none',
+            );
+        case 'stack':
+            return cn(
+                base,
+                'mx-auto h-[9rem] max-h-[9rem] max-w-[14rem]',
+                'sm:mx-0 sm:h-[9.5rem] sm:max-h-[9.5rem] sm:max-w-none',
+            );
+    }
+}
 
 type BentoFeatureCardProps = Readonly<{
     title: string;
@@ -61,10 +95,9 @@ type BentoFeatureCardProps = Readonly<{
     icon: LucideIcon;
     Mockup: FeatureMockup;
     bento: string;
+    layout: FeatureLayout;
     index: number;
     inView: boolean;
-    featured?: boolean;
-    wide?: boolean;
 }>;
 
 function BentoFeatureCard({
@@ -73,16 +106,19 @@ function BentoFeatureCard({
     icon: Icon,
     Mockup,
     bento,
+    layout,
     index,
     inView,
-    featured = false,
-    wide = false,
 }: BentoFeatureCardProps) {
+    const isFeatured = layout === 'featured';
+    const isWide = layout === 'wide';
+    const isStack = layout === 'stack';
+
     return (
         <li
             className={cn(
                 bento,
-                'group relative flex min-h-[14rem] flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-[0_4px_20px_-2px_rgb(0_0_0/0.06)] sm:min-h-[16rem]',
+                'group relative flex h-full min-h-[15rem] flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-[0_4px_20px_-2px_rgb(0_0_0/0.06)] sm:min-h-[16rem]',
                 'transition-[border-color,box-shadow,opacity] duration-200 ease-out',
                 '[@media(hover:hover)]:hover:border-indigo-500/30',
                 'dark:shadow-[0_8px_32px_-8px_rgb(0_0_0/0.45)]',
@@ -102,18 +138,13 @@ function BentoFeatureCard({
 
             <div
                 className={cn(
-                    'relative flex flex-1 flex-col p-4 sm:p-5',
-                    featured && 'lg:flex-row lg:items-stretch lg:gap-6',
-                    wide && 'md:flex-row md:items-center md:gap-6 lg:gap-8',
+                    'relative flex h-full flex-1 flex-col gap-4 p-4 sm:p-5',
+                    isFeatured &&
+                        'lg:grid lg:grid-cols-2 lg:items-center lg:gap-6 xl:gap-8',
+                    isWide && 'md:grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-center md:gap-6 lg:gap-8',
                 )}
             >
-                <div
-                    className={cn(
-                        'mb-3 flex items-start gap-3',
-                        featured && 'lg:mb-0 lg:max-w-[42%] lg:shrink-0 lg:self-center',
-                        wide && 'md:mb-0 md:max-w-md md:shrink-0',
-                    )}
-                >
+                <div className={cn('flex min-w-0 items-start gap-3', isStack && 'mb-1')}>
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/15 transition-colors duration-150 ease-out [@media(hover:hover)]:group-hover:bg-indigo-500/15">
                         <Icon className="size-4 text-indigo-600 dark:text-indigo-400" strokeWidth={2} />
                     </div>
@@ -123,15 +154,8 @@ function BentoFeatureCard({
                     </div>
                 </div>
 
-                <div
-                    className={cn(
-                        'mt-auto min-w-0',
-                        featured && 'lg:mt-0 lg:flex-1 lg:min-h-[12rem]',
-                        wide && 'md:mt-0 md:min-w-0 md:flex-1',
-                        !featured && !wide && 'min-h-[9rem]',
-                    )}
-                >
-                    <Mockup className="h-full min-h-[9rem] w-full sm:min-h-[9.5rem]" />
+                <div className={cn('min-w-0', isStack && 'mt-auto')}>
+                    <Mockup className={mockupClassName(layout)} />
                 </div>
             </div>
         </li>
@@ -153,8 +177,8 @@ export default function FeaturesSection() {
                     description="Mirror reads, confirmed writes, and a single workspace for metrics and chat."
                 />
 
-                <ul className="mt-10 grid list-none grid-cols-1 gap-3 pl-0 sm:mt-12 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:auto-rows-[minmax(15rem,auto)]">
-                    {FEATURES.map(({ id, title, body, icon, Mockup, bento }, index) => (
+                <ul className="mt-10 grid list-none grid-cols-1 gap-3 pl-0 sm:mt-12 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:grid-rows-2 lg:items-stretch lg:gap-4">
+                    {FEATURES.map(({ id, title, body, icon, Mockup, bento, layout }, index) => (
                         <BentoFeatureCard
                             key={id}
                             title={title}
@@ -162,10 +186,9 @@ export default function FeaturesSection() {
                             icon={icon}
                             Mockup={Mockup}
                             bento={bento}
+                            layout={layout}
                             index={index}
                             inView={inView}
-                            featured={id === 'chat'}
-                            wide={id === 'byok'}
                         />
                     ))}
                 </ul>
