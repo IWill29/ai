@@ -22,9 +22,9 @@ type PageWithFlash = SharedProps & {
     };
 };
 
-type Props = {
+type Props = Readonly<{
     status?: string;
-};
+}>;
 
 function VerificationEmailSentNotice() {
     return (

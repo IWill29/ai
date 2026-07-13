@@ -31,15 +31,12 @@ final class VerifyUserEmailCommand extends Command
             return self::FAILURE;
         }
 
-        if ($user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            $this->info("Verified {$email}.");
+        } else {
             $this->info("{$email} is already verified.");
-
-            return self::SUCCESS;
         }
-
-        $user->markEmailAsVerified();
-
-        $this->info("Verified {$email}.");
 
         return self::SUCCESS;
     }

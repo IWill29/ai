@@ -47,7 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
-        $exceptions->render(function (InvalidSignatureException $exception, Request $request): ?Response {
+        $exceptions->render(function (InvalidSignatureException $_, Request $request): ?Response {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'This link is invalid or has expired.',
@@ -60,14 +60,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
             $message = 'This verification link is invalid or has expired. Request a new one below.';
 
-            if ($request->user() !== null) {
-                return redirect()
-                    ->route('verification.notice')
-                    ->with('error', $message);
+            if ($request->user() === null) {
+                $message .= ' Log in first, then use Resend verification email.';
             }
 
-            return redirect()
-                ->route('login')
-                ->with('error', $message.' Log in first, then use Resend verification email.');
+            $route = $request->user() !== null ? 'verification.notice' : 'login';
+
+            return redirect()->route($route)->with('error', $message);
         });
     })->create();

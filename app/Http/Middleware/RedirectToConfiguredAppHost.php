@@ -24,11 +24,7 @@ final class RedirectToConfiguredAppHost
 
         $expectedHost = parse_url($appUrl, PHP_URL_HOST);
 
-        if (! is_string($expectedHost) || $expectedHost === '') {
-            return $next($request);
-        }
-
-        if (strcasecmp($request->getHost(), $expectedHost) === 0) {
+        if (! is_string($expectedHost) || $expectedHost === '' || strcasecmp($request->getHost(), $expectedHost) === 0) {
             return $next($request);
         }
 
