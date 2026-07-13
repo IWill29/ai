@@ -16,8 +16,8 @@ use App\Domains\Billing\Contracts\BillingService;
 use App\Domains\Billing\Services\StubBillingService;
 use App\Domains\Chat\Contracts\AttachmentUploadService;
 use App\Domains\Chat\Contracts\ChatService;
+use App\Domains\Chat\Services\DefaultAttachmentUploadService;
 use App\Domains\Chat\Services\DefaultChatService;
-use App\Domains\Chat\Services\StubAttachmentUploadService;
 use App\Domains\Dashboard\Contracts\MetricsReader;
 use App\Domains\Dashboard\Services\SyncedMetricsReaderAdapter;
 use App\Domains\Stores\Contracts\StoreAdapterFactory;
@@ -40,7 +40,7 @@ class DomainServiceProvider extends ServiceProvider
         AgentService::class => DefaultAgentService::class,
         MemoryService::class => StubMemoryService::class,
         ChatService::class => DefaultChatService::class,
-        AttachmentUploadService::class => StubAttachmentUploadService::class,
+        AttachmentUploadService::class => DefaultAttachmentUploadService::class,
         BillingService::class => StubBillingService::class,
         AccountService::class => DefaultAccountService::class,
         MetricsReader::class => SyncedMetricsReaderAdapter::class,

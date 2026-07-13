@@ -15,8 +15,8 @@ use App\Domains\Billing\Contracts\BillingService;
 use App\Domains\Billing\Services\StubBillingService;
 use App\Domains\Chat\Contracts\AttachmentUploadService;
 use App\Domains\Chat\Contracts\ChatService;
+use App\Domains\Chat\Services\DefaultAttachmentUploadService;
 use App\Domains\Chat\Services\DefaultChatService;
-use App\Domains\Chat\Services\StubAttachmentUploadService;
 use App\Domains\Dashboard\Contracts\MetricsReader;
 use App\Domains\Dashboard\Services\SyncedMetricsReaderAdapter;
 use App\Domains\Stores\Contracts\StoreAdapterFactory;
@@ -52,7 +52,7 @@ class DomainContractBindingsTest extends TestCase
 
     public function test_attachment_upload_service_resolves(): void
     {
-        $this->assertInstanceOf(StubAttachmentUploadService::class, app(AttachmentUploadService::class));
+        $this->assertInstanceOf(DefaultAttachmentUploadService::class, app(AttachmentUploadService::class));
     }
 
     public function test_billing_service_resolves_to_stub(): void

@@ -127,5 +127,13 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('openrouter-validate', fn (Request $request) => Limit::perMinute(5)->by(
             $request->user()?->id ?: $request->ip(),
         ));
+
+        RateLimiter::for('agent', fn (Request $request) => Limit::perMinute(
+            (int) config('agent.rate_limit.per_minute', 10),
+        )->by($request->user()?->account_id ?: $request->ip()));
+
+        RateLimiter::for('attachments', fn (Request $request) => Limit::perMinute(20)->by(
+            $request->user()?->account_id ?: $request->ip(),
+        ));
     }
 }
