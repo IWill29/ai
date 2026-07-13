@@ -35,7 +35,8 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('verification.notice'));
+        $response->assertSessionHas('status', 'verification-link-sent');
 
         $user = User::query()->firstWhere('email', 'test@example.com');
 

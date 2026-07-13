@@ -46,6 +46,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),
+                'status' => fn () => $request->session()->get('status'),
             ],
             'sidebarOpen' => fn () => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'hasConnectedStores' => Inertia::optional(fn () => $request->user() !== null

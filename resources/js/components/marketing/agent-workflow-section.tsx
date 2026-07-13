@@ -154,6 +154,15 @@ function WorkflowStep({
                         ))}
                     </ul>
                 )}
+
+                {isActive && (
+                    <div className="mt-4 lg:hidden" aria-live="polite" aria-label={`Preview: ${step.title}`}>
+                        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                            Live preview
+                        </p>
+                        <AgentStepMockup kind={step.kind} />
+                    </div>
+                )}
             </div>
         </li>
     );
@@ -165,32 +174,6 @@ type MockupPanelProps = Readonly<{
     inView: boolean;
 }>;
 
-function MobileMockupPanel({ steps, activeIndex, inView }: MockupPanelProps) {
-    const activeStep = steps[activeIndex] ?? steps[0];
-
-    if (!activeStep) {
-        return null;
-    }
-
-    return (
-        <div
-            className={cn(
-                'mb-8 lg:hidden',
-                inView ? 'opacity-100' : 'opacity-0',
-                'motion-safe:transition-opacity motion-safe:duration-500',
-                'motion-reduce:opacity-100',
-            )}
-            aria-live="polite"
-            aria-label={`Preview: ${activeStep.title}`}
-        >
-            <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                Live preview · Step {activeIndex + 1} of {steps.length}
-            </p>
-            <AgentStepMockup kind={activeStep.kind} />
-        </div>
-    );
-}
-
 function StickyMockupPanel({ steps, activeIndex, inView }: MockupPanelProps) {
     const activeStep = steps[activeIndex] ?? steps[0];
 
@@ -201,7 +184,7 @@ function StickyMockupPanel({ steps, activeIndex, inView }: MockupPanelProps) {
     return (
         <div
             className={cn(
-                'sticky top-24 hidden lg:block',
+                'sticky top-20 hidden max-h-[calc(100vh-6rem)] lg:block',
                 inView ? 'opacity-100' : 'opacity-0',
                 'motion-safe:transition-opacity motion-safe:duration-500',
                 'motion-reduce:opacity-100',
@@ -234,8 +217,6 @@ export default function AgentWorkflowSection({ steps }: Props) {
                     title="How the agent works"
                     description="Scroll through each step — the preview updates so you can see exactly what happens in the app."
                 />
-
-                <MobileMockupPanel steps={steps} activeIndex={activeIndex} inView={inView} />
 
                 <div className="mt-8 grid gap-8 sm:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
                     <ol className="relative list-none pl-0">

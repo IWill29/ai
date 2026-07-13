@@ -40,6 +40,7 @@ class EmailVerificationTest extends TestCase
             'verification.verify',
             now()->addMinutes(60),
             ['id' => $user->id, 'hash' => sha1($user->email)],
+            absolute: false,
         );
 
         $response = $this->actingAs($user)->get($verificationUrl);
@@ -60,6 +61,7 @@ class EmailVerificationTest extends TestCase
             'verification.verify',
             now()->addMinutes(60),
             ['id' => $user->id, 'hash' => sha1('wrong-email')],
+            absolute: false,
         );
 
         $this->actingAs($user)->get($verificationUrl);
@@ -78,6 +80,7 @@ class EmailVerificationTest extends TestCase
             'verification.verify',
             now()->addMinutes(60),
             ['id' => 123, 'hash' => sha1($user->email)],
+            absolute: false,
         );
 
         $this->actingAs($user)->get($verificationUrl);
@@ -108,6 +111,7 @@ class EmailVerificationTest extends TestCase
             'verification.verify',
             now()->addMinutes(60),
             ['id' => $user->id, 'hash' => sha1($user->email)],
+            absolute: false,
         );
 
         $this->actingAs($user)->get($verificationUrl)
