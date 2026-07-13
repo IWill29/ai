@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Support\EmailVerificationHash;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -39,7 +40,7 @@ class EmailVerificationTest extends TestCase
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)],
+            ['id' => $user->id, 'hash' => EmailVerificationHash::forUser($user)],
             absolute: false,
         );
 
@@ -60,7 +61,7 @@ class EmailVerificationTest extends TestCase
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1('wrong-email')],
+            ['id' => $user->id, 'hash' => EmailVerificationHash::forEmail('wrong-email')],
             absolute: false,
         );
 
@@ -79,7 +80,7 @@ class EmailVerificationTest extends TestCase
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
-            ['id' => 123, 'hash' => sha1($user->email)],
+            ['id' => 123, 'hash' => EmailVerificationHash::forUser($user)],
             absolute: false,
         );
 
@@ -110,7 +111,7 @@ class EmailVerificationTest extends TestCase
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)],
+            ['id' => $user->id, 'hash' => EmailVerificationHash::forUser($user)],
             absolute: false,
         );
 

@@ -7,6 +7,7 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\EmailVerificationNotificationSentResponse;
 use App\Http\Responses\RegisterResponse;
 use App\Models\User;
+use App\Support\EmailVerificationHash;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -99,7 +100,7 @@ class FortifyServiceProvider extends ServiceProvider
                 now()->addMinutes((int) config('auth.verification.expire', 60)),
                 [
                     'id' => $user->getKey(),
-                    'hash' => sha1($user->getEmailForVerification()),
+                    'hash' => EmailVerificationHash::forUser($user),
                 ],
                 absolute: false,
             );

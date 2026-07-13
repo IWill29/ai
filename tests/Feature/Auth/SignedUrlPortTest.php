@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Support\EmailVerificationHash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Laravel\Fortify\Features;
@@ -29,7 +30,7 @@ class SignedUrlPortTest extends TestCase
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)],
+            ['id' => $user->id, 'hash' => EmailVerificationHash::forUser($user)],
             absolute: false,
         );
 

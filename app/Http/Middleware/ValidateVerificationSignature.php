@@ -13,23 +13,27 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Use relative URL signatures for email verification links so localhost and 127.0.0.1 both work.
  */
-final class ValidateVerificationSignature extends ValidateSignature
+final class ValidateVerificationSignature
 {
+    public function __construct(
+        private readonly ValidateSignature $validateSignature,
+    ) {}
+
     /**
-     * @param  Closure(Request): Response  $next
+     * @param  string  ...$args
      */
-    public function handle($request, Closure $next, ...$args)
+    public function handle(Request $request, Closure $next, ...$args): Response
     {
         if ($request->routeIs('verification.verify')) {
-            [$relative, $ignore] = $this->parseArguments(['relative', ...$args]);
-
-            if ($request->hasValidSignatureWhileIgnoring($ignore, ! $relative)) {
+            if ($request->hasValidSignatureWhileIgnoring([], false)) {
                 return $next($request);
             }
 
             throw new InvalidSignatureException;
         }
 
-        return parent::handle($request, $next, ...$args);
+        $parameters = [$request, $next, ...$args];
+
+        return call_user_func_array($this->validateSignature->handle(...), $parameters);
     }
 }
