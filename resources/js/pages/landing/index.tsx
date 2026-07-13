@@ -11,6 +11,7 @@ import MarketingLayout from '@/layouts/marketing-layout';
 const FeaturesSection = lazy(() => import('@/components/marketing/features-section'));
 const AgentWorkflowSection = lazy(() => import('@/components/marketing/agent-workflow-section'));
 const PricingSection = lazy(() => import('@/components/marketing/pricing-section'));
+const PoweredBySection = lazy(() => import('@/components/marketing/powered-by-section'));
 const FaqSection = lazy(() => import('@/components/marketing/faq-section'));
 
 type FaqItem = {
@@ -98,6 +99,10 @@ export default function LandingIndex({ plans, faqs, agentSteps, canonicalUrl }: 
                     <PricingSection plans={plans} />
                 </Suspense>
             )}
+
+            <Suspense fallback={<SectionPlaceholder minHeight="16rem" />}>
+                <PoweredBySection />
+            </Suspense>
 
             {faqs.length > 0 && (
                 <Suspense fallback={<SectionPlaceholder minHeight="20rem" />}>

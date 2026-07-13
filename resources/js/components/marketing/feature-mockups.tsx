@@ -14,6 +14,7 @@ export function ChatFeatureMockup({ className }: MockupProps) {
             aria-hidden
             className={cn(
                 'relative flex min-h-[9.5rem] flex-col justify-end overflow-hidden rounded-xl border border-border/50 bg-gradient-to-b from-indigo-500/5 to-muted/20 p-3',
+                'min-h-0',
                 className,
             )}
         >
@@ -46,6 +47,7 @@ export function DashboardFeatureMockup({ className }: MockupProps) {
             aria-hidden
             className={cn(
                 'grid min-h-[9.5rem] grid-cols-2 gap-2 rounded-xl border border-border/50 bg-muted/15 p-3',
+                'min-h-0',
                 className,
             )}
         >
@@ -80,6 +82,7 @@ export function ShopifyFeatureMockup({ className }: MockupProps) {
             aria-hidden
             className={cn(
                 'flex min-h-[9.5rem] flex-col justify-between rounded-xl border border-border/50 bg-muted/15 p-3',
+                'min-h-0',
                 className,
             )}
         >
@@ -109,6 +112,7 @@ export function ByokFeatureMockup({ className }: MockupProps) {
             aria-hidden
             className={cn(
                 'flex min-h-[9.5rem] flex-col justify-between rounded-xl border border-border/50 bg-muted/15 p-3',
+                'min-h-0',
                 className,
             )}
         >

@@ -1,5 +1,6 @@
-import { Form, Link, usePage } from '@inertiajs/react';
+import { Form, router, usePage } from '@inertiajs/react';
 import { Mail, ShieldCheck, UserRound } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import InputError from '@/components/input-error';
@@ -16,6 +17,9 @@ const cardClass =
 
 type PageProps = {
     auth: Auth;
+    flash?: {
+        status?: string;
+    };
 };
 
 type Props = Readonly<{
@@ -24,8 +28,39 @@ type Props = Readonly<{
 }>;
 
 export default function ProfileSetupPanel({ mustVerifyEmail, status }: Props) {
-    const { auth } = usePage<PageProps>().props;
+    const page = usePage<PageProps>();
+    const { auth } = page.props;
+    const sessionFlash = page.props.flash;
+    const inertiaFlash = (page as PageProps & { flash?: { status?: string } }).flash;
+    const [resent, setResent] = useState(false);
     const emailUnverified = mustVerifyEmail && auth.user.email_verified_at === null;
+    const verificationLinkSent =
+        status === 'verification-link-sent' ||
+        sessionFlash?.status === 'verification-link-sent' ||
+        inertiaFlash?.status === 'verification-link-sent' ||
+        resent;
+
+    useEffect(() => {
+        return router.on('flash', (event) => {
+            const flash = (event as CustomEvent).detail?.flash as { status?: string } | undefined;
+
+            if (flash?.status === 'verification-link-sent') {
+                setResent(true);
+            }
+        });
+    }, []);
+
+    const resendVerificationEmail = () => {
+        router.post(
+            send.url(),
+            {},
+            {
+                preserveScroll: true,
+                preserveState: false,
+                onSuccess: () => setResent(true),
+            },
+        );
+    };
 
     return (
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 md:gap-8 md:p-6">
@@ -117,15 +152,15 @@ export default function ProfileSetupPanel({ mustVerifyEmail, status }: Props) {
                                     <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-4 text-sm">
                                         <p className="text-amber-950 dark:text-amber-100">
                                             Your email is not verified yet.{' '}
-                                            <Link
-                                                href={send()}
-                                                as="button"
+                                            <button
+                                                type="button"
+                                                onClick={resendVerificationEmail}
                                                 className="font-medium underline decoration-amber-500/40 underline-offset-4 transition-colors duration-150 ease-out hover:decoration-current"
                                             >
                                                 Resend verification email
-                                            </Link>
+                                            </button>
                                         </p>
-                                        {status === 'verification-link-sent' && (
+                                        {verificationLinkSent && (
                                             <p className="mt-2 font-medium text-emerald-700 dark:text-emerald-300">
                                                 A new verification link has been sent.
                                             </p>
