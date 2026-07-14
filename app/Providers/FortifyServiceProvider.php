@@ -162,7 +162,9 @@ class FortifyServiceProvider extends ServiceProvider
                 'password.email' => 'throttle:password-reset',
             ];
 
-            foreach (Route::getRoutes() as $route) {
+            $routes = Route::getRoutes();
+
+            foreach ($routes instanceof \Traversable ? $routes : [] as $route) {
                 $name = $route->getName();
 
                 if ($name !== null && isset($throttledRoutes[$name])) {

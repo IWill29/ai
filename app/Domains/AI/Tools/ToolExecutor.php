@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\AI\Tools;
 
+use App\Domains\AI\Enums\ToolName;
 use App\Support\SensitiveData;
 use App\Domains\AI\Exceptions\StoreAdapterUnavailableException;
 use App\Domains\AI\Services\AttachmentResolver;

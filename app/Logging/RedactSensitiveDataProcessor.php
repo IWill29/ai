@@ -12,13 +12,9 @@ final class RedactSensitiveDataProcessor implements ProcessorInterface
 {
     public function __invoke(LogRecord $record): LogRecord
     {
-        $context = is_array($record->context)
-            ? SensitiveData::redactContext($record->context)
-            : $record->context;
-
         return $record->with(
             message: SensitiveData::sanitizeMessage($record->message),
-            context: $context,
+            context: SensitiveData::redactContext($record->context),
         );
     }
 }
