@@ -55,38 +55,35 @@ final class VectorMemoryService implements MemoryService
     public function recall(string $accountId, string $query, int $limit = 5): array
     {
         $query = trim($query);
+        $results = [];
 
-        if ($query === '' || $limit <= 0) {
-            return [];
+        if ($query !== '' && $limit > 0) {
+            $apiKey = $this->resolveApiKey($accountId);
+
+            if ($apiKey !== null) {
+                try {
+                    $embedding = $this->embeddings->embed($apiKey, $query, $accountId);
+
+                    $results = AgentMemory::query()
+                        ->where('account_id', $accountId)
+                        ->nearestNeighbors('embedding', $embedding, Distance::Cosine)
+                        ->take($limit)
+                        ->get()
+                        ->map(static fn (AgentMemory $memory): array => [
+                            'content' => $memory->content,
+                            'meta' => $memory->meta ?? [],
+                        ])
+                        ->all();
+                } catch (\Throwable $exception) {
+                    Log::warning('agent.memory.recall_failed', [
+                        'account_id' => $accountId,
+                        'message' => $exception->getMessage(),
+                    ]);
+                }
+            }
         }
 
-        $apiKey = $this->resolveApiKey($accountId);
-
-        if ($apiKey === null) {
-            return [];
-        }
-
-        try {
-            $embedding = $this->embeddings->embed($apiKey, $query, $accountId);
-        } catch (\Throwable $exception) {
-            Log::warning('agent.memory.recall_failed', [
-                'account_id' => $accountId,
-                'message' => $exception->getMessage(),
-            ]);
-
-            return [];
-        }
-
-        return AgentMemory::query()
-            ->where('account_id', $accountId)
-            ->nearestNeighbors('embedding', $embedding, Distance::Cosine)
-            ->take($limit)
-            ->get()
-            ->map(static fn (AgentMemory $memory): array => [
-                'content' => $memory->content,
-                'meta' => $memory->meta ?? [],
-            ])
-            ->all();
+        return $results;
     }
 
     private function resolveApiKey(string $accountId): ?string

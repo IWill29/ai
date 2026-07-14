@@ -10,13 +10,15 @@ use App\Domains\AI\Models\AgentMemory;
 use App\Domains\AI\Services\VectorMemoryService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\BindsDeterministicAgentMemory;
 use Tests\Concerns\CreatesAgentFixtures;
-use Tests\Support\DeterministicEmbeddingPort;
+use Tests\Support\AgentTestData;
 use Tests\Support\FailingEmbeddingPort;
 use Tests\TestCase;
 
 class AgentMemoryRecallTest extends TestCase
 {
+    use BindsDeterministicAgentMemory;
     use CreatesAgentFixtures;
     use RefreshDatabase;
 
@@ -24,8 +26,7 @@ class AgentMemoryRecallTest extends TestCase
     {
         parent::setUp();
 
-        $this->app->instance(EmbeddingPort::class, new DeterministicEmbeddingPort);
-        $this->app->instance(MemoryService::class, new VectorMemoryService(app(EmbeddingPort::class)));
+        $this->bindDeterministicMemory();
     }
 
     public function test_recall_returns_relevant_memories_for_same_account(): void
@@ -36,14 +37,14 @@ class AgentMemoryRecallTest extends TestCase
         $memory = app(MemoryService::class);
         $memory->remember(
             $user->account_id,
-            'Merchant preference: keep answers brief',
+            AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF,
             ['source' => 'merchant_preference'],
         );
 
         $recalled = $memory->recall($user->account_id, 'Give me a brief summary of sales');
 
         $this->assertCount(1, $recalled);
-        $this->assertSame('Merchant preference: keep answers brief', $recalled[0]['content']);
+        $this->assertSame(AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF, $recalled[0]['content']);
         $this->assertSame('merchant_preference', $recalled[0]['meta']['source']);
     }
 
@@ -55,7 +56,7 @@ class AgentMemoryRecallTest extends TestCase
         $this->createOpenRouterCredential($userB);
 
         $memory = app(MemoryService::class);
-        $memory->remember($userA->account_id, 'Merchant preference: keep answers brief');
+        $memory->remember($userA->account_id, AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF);
 
         $recalled = $memory->recall($userB->account_id, 'brief summary please');
 
@@ -73,7 +74,7 @@ class AgentMemoryRecallTest extends TestCase
         $memory = app(MemoryService::class);
         $memory->remember(
             $user->account_id,
-            'Merchant confirmed: Fulfill order on gid://shopify/Order/100',
+            AgentTestData::MEMORY_CONFIRMED_FULFILL_ORDER_100,
             ['source' => 'confirmed_action'],
         );
 
@@ -85,7 +86,7 @@ class AgentMemoryRecallTest extends TestCase
         $recalled = $memory->recall($user->account_id, 'Can you fulfill order 100 again?');
 
         $this->assertCount(1, $recalled);
-        $this->assertStringContainsString('Fulfill order', $recalled[0]['content']);
+        $this->assertStringContainsString(AgentTestData::MEMORY_FULFILL_PHRASE, $recalled[0]['content']);
         $this->assertSame('confirmed_action', $recalled[0]['meta']['source']);
     }
 
@@ -94,7 +95,7 @@ class AgentMemoryRecallTest extends TestCase
         $user = User::factory()->create();
         $this->createOpenRouterCredential($user);
 
-        app(MemoryService::class)->remember($user->account_id, 'Merchant preference: keep answers brief');
+        app(MemoryService::class)->remember($user->account_id, AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF);
 
         $recalled = app(MemoryService::class)->recall($user->account_id, '');
 
@@ -126,7 +127,7 @@ class AgentMemoryRecallTest extends TestCase
         $user = User::factory()->create();
         $this->createOpenRouterCredential($user);
 
-        app(MemoryService::class)->remember($user->account_id, 'Merchant preference: brief answers');
+        app(MemoryService::class)->remember($user->account_id, AgentTestData::MEMORY_PREFERENCE_BRIEF_ANSWERS);
 
         $this->assertSame(0, AgentMemory::query()->where('account_id', $user->account_id)->count());
     }
@@ -137,12 +138,12 @@ class AgentMemoryRecallTest extends TestCase
         $this->createOpenRouterCredential($user);
         $memory = app(MemoryService::class);
 
-        $memory->remember($user->account_id, 'Merchant preference: keep answers brief');
-        $memory->remember($user->account_id, 'Merchant confirmed: Fulfill order on gid://shopify/Order/100');
+        $memory->remember($user->account_id, AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF);
+        $memory->remember($user->account_id, AgentTestData::MEMORY_CONFIRMED_FULFILL_ORDER_100);
 
         $recalled = $memory->recall($user->account_id, 'Can you fulfill order 100?', 1);
 
         $this->assertCount(1, $recalled);
-        $this->assertStringContainsString('Fulfill order', $recalled[0]['content']);
+        $this->assertStringContainsString(AgentTestData::MEMORY_FULFILL_PHRASE, $recalled[0]['content']);
     }
 }

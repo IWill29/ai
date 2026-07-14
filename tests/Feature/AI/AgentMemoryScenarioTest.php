@@ -6,7 +6,6 @@ namespace Tests\Feature\AI;
 
 use App\Domains\AI\Contracts\AgentLlmPort;
 use App\Domains\AI\Contracts\AgentService;
-use App\Domains\AI\Contracts\EmbeddingPort;
 use App\Domains\AI\Contracts\MemoryService;
 use App\Domains\AI\DTOs\LlmResponse;
 use App\Domains\AI\DTOs\ToolCall;
@@ -28,10 +27,10 @@ use App\Models\User;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Tests\Concerns\BindsDeterministicAgentMemory;
 use Tests\Concerns\CreatesAgentFixtures;
 use Tests\Concerns\SeedsPlans;
 use Tests\Support\AgentTestData;
-use Tests\Support\DeterministicEmbeddingPort;
 use Tests\TestCase;
 
 /**
@@ -41,6 +40,7 @@ use Tests\TestCase;
  */
 class AgentMemoryScenarioTest extends TestCase
 {
+    use BindsDeterministicAgentMemory;
     use CreatesAgentFixtures;
     use RefreshDatabase;
     use SeedsPlans;
@@ -61,12 +61,12 @@ class AgentMemoryScenarioTest extends TestCase
 
         app(AgentMemoryRecorder::class)->recordPreferenceIfPresent(
             $user->account_id,
-            'Remember that I want brief answers',
+            AgentTestData::MERCHANT_MESSAGE_REMEMBER_BRIEF,
         );
 
         $this->assertDatabaseHas('agent_memories', [
             'account_id' => $user->account_id,
-            'content' => 'Merchant preference: I want brief answers',
+            'content' => AgentTestData::MEMORY_PREFERENCE_WANT_BRIEF,
         ]);
     }
 
@@ -81,15 +81,15 @@ class AgentMemoryScenarioTest extends TestCase
         $this->mockSimpleAnswerLlm('Got it.');
 
         $stream = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Remember that I want brief answers',
+            'message' => AgentTestData::MERCHANT_MESSAGE_REMEMBER_BRIEF,
         ]);
 
         $stream->assertOk();
-        $this->assertStringContainsString('"status":"completed"', $stream->streamedContent());
+        $this->assertStringContainsString(AgentTestData::SSE_STATUS_COMPLETED, $stream->streamedContent());
 
         $this->assertDatabaseHas('agent_memories', [
             'account_id' => $user->account_id,
-            'content' => 'Merchant preference: I want brief answers',
+            'content' => AgentTestData::MEMORY_PREFERENCE_WANT_BRIEF,
         ]);
 
         $memory = AgentMemory::query()->where('account_id', $user->account_id)->firstOrFail();
@@ -104,7 +104,7 @@ class AgentMemoryScenarioTest extends TestCase
 
         app(MemoryService::class)->remember(
             $user->account_id,
-            'Merchant preference: keep answers brief',
+            AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF,
             ['source' => MemorySource::MerchantPreference->value],
         );
 
@@ -123,7 +123,7 @@ class AgentMemoryScenarioTest extends TestCase
         );
 
         $this->assertStringContainsString('Relevant memories:', $messages[0]->content ?? '');
-        $this->assertStringContainsString('Merchant preference: keep answers brief', $messages[0]->content ?? '');
+        $this->assertStringContainsString(AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF, $messages[0]->content ?? '');
         $this->assertNotSame($firstConversation->id, $secondConversation->id);
     }
 
@@ -138,7 +138,7 @@ class AgentMemoryScenarioTest extends TestCase
         $this->mockFulfillOrderLlm(AgentTestData::ORDER_100);
 
         $stream = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Fulfill order 100',
+            'message' => AgentTestData::CHAT_FULFILL_ORDER_100,
         ]);
 
         $stream->assertOk();
@@ -159,7 +159,7 @@ class AgentMemoryScenarioTest extends TestCase
         $memory = AgentMemory::query()->where('account_id', $user->account_id)->firstOrFail();
         $this->assertSame(MemorySource::ConfirmedAction->value, $memory->meta['source']);
         $this->assertSame('fulfill_order', $memory->meta['tool']);
-        $this->assertStringContainsString('Fulfill order', $memory->content);
+        $this->assertStringContainsString(AgentTestData::MEMORY_FULFILL_PHRASE, $memory->content);
         $this->assertStringContainsString(AgentTestData::ORDER_100, $memory->content);
     }
 
@@ -174,7 +174,7 @@ class AgentMemoryScenarioTest extends TestCase
         $this->mockFulfillOrderLlm(AgentTestData::ORDER_200);
 
         $stream = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Fulfill order 200',
+            'message' => AgentTestData::CHAT_FULFILL_ORDER_200,
         ]);
 
         $stream->assertOk();
@@ -201,7 +201,7 @@ class AgentMemoryScenarioTest extends TestCase
         $user = User::factory()->create();
 
         $memory = app(MemoryService::class);
-        $memory->remember($user->account_id, 'Merchant preference: brief answers');
+        $memory->remember($user->account_id, AgentTestData::MEMORY_PREFERENCE_BRIEF_ANSWERS);
         $recalled = $memory->recall($user->account_id, 'brief summary');
 
         $this->assertSame([], $recalled);
@@ -223,7 +223,7 @@ class AgentMemoryScenarioTest extends TestCase
         ]);
 
         $stream->assertOk();
-        $this->assertStringContainsString('"status":"completed"', $stream->streamedContent());
+        $this->assertStringContainsString(AgentTestData::SSE_STATUS_COMPLETED, $stream->streamedContent());
         $this->assertSame(0, AgentMemory::query()->where('account_id', $user->account_id)->count());
     }
 
@@ -251,7 +251,7 @@ class AgentMemoryScenarioTest extends TestCase
         $this->createOpenRouterCredential($user);
         $recorder = app(AgentMemoryRecorder::class);
 
-        $recorder->recordPreferenceIfPresent($user->account_id, 'Remember that I want brief answers');
+        $recorder->recordPreferenceIfPresent($user->account_id, AgentTestData::MERCHANT_MESSAGE_REMEMBER_BRIEF);
         $recorder->recordPreferenceIfPresent($user->account_id, 'Always use EUR formatting');
 
         $this->assertSame(2, AgentMemory::query()->where('account_id', $user->account_id)->count());
@@ -261,7 +261,7 @@ class AgentMemoryScenarioTest extends TestCase
         $this->assertGreaterThanOrEqual(1, count($recalled));
         $contents = array_column($recalled, 'content');
         $this->assertTrue(
-            in_array('Merchant preference: I want brief answers', $contents, true)
+            in_array(AgentTestData::MEMORY_PREFERENCE_WANT_BRIEF, $contents, true)
             || in_array('Merchant preference: use EUR formatting', $contents, true),
             'Expected at least one stored preference in recall results.',
         );
@@ -274,7 +274,7 @@ class AgentMemoryScenarioTest extends TestCase
 
         app(MemoryService::class)->remember(
             $user->account_id,
-            'Merchant preference: keep answers brief',
+            AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF,
             ['source' => MemorySource::MerchantPreference->value],
         );
 
@@ -290,18 +290,17 @@ class AgentMemoryScenarioTest extends TestCase
     public function test_confirmed_action_and_preference_both_recalled_in_new_conversation(): void
     {
         $user = User::factory()->create();
-        $store = $this->createStoreForUser($user);
         $this->createOpenRouterCredential($user);
 
         $memory = app(MemoryService::class);
         $memory->remember(
             $user->account_id,
-            'Merchant preference: keep answers brief',
+            AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF,
             ['source' => MemorySource::MerchantPreference->value],
         );
         $memory->remember(
             $user->account_id,
-            'Merchant confirmed: Fulfill order on gid://shopify/Order/100',
+            AgentTestData::MEMORY_CONFIRMED_FULFILL_ORDER_100,
             ['source' => MemorySource::ConfirmedAction->value],
         );
 
@@ -310,9 +309,9 @@ class AgentMemoryScenarioTest extends TestCase
         $this->assertCount(2, $recalled);
 
         $contents = array_column($recalled, 'content');
-        $this->assertContains('Merchant preference: keep answers brief', $contents);
+        $this->assertContains(AgentTestData::MEMORY_PREFERENCE_KEEP_BRIEF, $contents);
         $this->assertTrue(
-            collect($contents)->contains(fn (string $content): bool => str_contains($content, 'Fulfill order')),
+            collect($contents)->contains(fn (string $content): bool => str_contains($content, AgentTestData::MEMORY_FULFILL_PHRASE)),
         );
     }
 
@@ -327,7 +326,7 @@ class AgentMemoryScenarioTest extends TestCase
         $this->mockFulfillOrderLlm(AgentTestData::ORDER_100);
 
         $writeStream = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Fulfill order 100',
+            'message' => AgentTestData::CHAT_FULFILL_ORDER_100,
         ]);
         $writeStream->assertOk();
         $this->assertStringContainsString('confirmation_required', $writeStream->streamedContent());
@@ -361,14 +360,14 @@ class AgentMemoryScenarioTest extends TestCase
 
         $resumeStream = $this->actingAs($user)->post(route('conversations.stream.resume', $conversation));
         $resumeStream->assertOk();
-        $this->assertStringContainsString('"status":"completed"', $resumeStream->streamedContent());
+        $this->assertStringContainsString(AgentTestData::SSE_STATUS_COMPLETED, $resumeStream->streamedContent());
 
         $memory = AgentMemory::query()->where('account_id', $user->account_id)->firstOrFail();
         $this->assertSame(MemorySource::ConfirmedAction->value, $memory->meta['source']);
 
         $recalled = app(MemoryService::class)->recall($user->account_id, 'fulfill order 100 again');
         $this->assertNotEmpty($recalled);
-        $this->assertStringContainsString('Fulfill order', $recalled[0]['content']);
+        $this->assertStringContainsString(AgentTestData::MEMORY_FULFILL_PHRASE, $recalled[0]['content']);
     }
 
     private function resetAgentContainer(): void
@@ -384,12 +383,6 @@ class AgentMemoryScenarioTest extends TestCase
         ] as $abstract) {
             $this->app->forgetInstance($abstract);
         }
-    }
-
-    private function bindDeterministicMemory(): void
-    {
-        $this->app->instance(EmbeddingPort::class, new DeterministicEmbeddingPort);
-        $this->app->instance(MemoryService::class, new VectorMemoryService(app(EmbeddingPort::class)));
     }
 
     private function mockSimpleAnswerLlm(string $answer): void
