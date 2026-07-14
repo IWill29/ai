@@ -9,6 +9,11 @@ use App\Models\User;
 
 class ConversationPolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return $user->account_id !== null;
+    }
+
     public function view(User $user, Conversation $conversation): bool
     {
         return $user->account_id === $conversation->account_id;

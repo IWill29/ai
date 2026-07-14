@@ -4,6 +4,7 @@ import {
     LayoutGrid,
     MessageSquare,
     Plus,
+    ShieldCheck,
     Sparkles,
     Store,
 } from 'lucide-react';
@@ -53,6 +54,11 @@ const settingsNavItems: NavItem[] = [
         title: 'AI keys',
         href: openrouter(),
         icon: Sparkles,
+    },
+    {
+        title: 'Data privacy',
+        href: '/settings/data-privacy',
+        icon: ShieldCheck,
     },
     {
         title: 'Billing',

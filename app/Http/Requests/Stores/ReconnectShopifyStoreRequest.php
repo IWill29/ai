@@ -24,7 +24,7 @@ class ReconnectShopifyStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'access_token' => ['required', 'string', 'starts_with:shpat_'],
+            'access_token' => ['required', 'string', 'starts_with:shpat_', 'min:20', 'max:128'],
         ];
     }
 }

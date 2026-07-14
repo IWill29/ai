@@ -24,6 +24,10 @@ return [
 
     'webhook_url' => rtrim((string) env('WEBHOOK_BASE_URL', env('APP_URL', 'http://localhost')), '/').'/webhooks/shopify',
 
+    'webhooks' => [
+        'rate_limit_per_minute' => 120,
+    ],
+
     'webhook_topics' => [
         'ORDERS_CREATE',
         'ORDERS_UPDATE',

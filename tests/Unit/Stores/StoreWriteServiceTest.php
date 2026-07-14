@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Stores;
 
 use App\Domains\Billing\Models\AuditLog;
-use App\Domains\Stores\Actions\RecordStoreWriteAuditAction;
+use App\Domains\Billing\Actions\RecordAuditAction;
 use App\Domains\Stores\Contracts\StorePort;
 use App\Domains\Stores\Enums\Platform;
 use App\Domains\Stores\Models\StoreConnection;
@@ -67,8 +67,8 @@ class StoreWriteServiceTest extends TestCase
         ]);
 
         $service = new StoreWriteService(
-            new StoreAdapterManager,
-            app(RecordStoreWriteAuditAction::class),
+            new StoreAdapterManager(),
+            app(RecordAuditAction::class),
         );
 
         $service->execute(

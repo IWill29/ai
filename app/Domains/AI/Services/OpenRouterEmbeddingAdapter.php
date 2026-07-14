@@ -36,7 +36,7 @@ final class OpenRouterEmbeddingAdapter implements EmbeddingPort
         }
 
         if ($response->failed()) {
-            throw new EmbeddingUnavailableException('OpenRouter embeddings HTTP '.$response->status().': '.$response->body());
+            throw new EmbeddingUnavailableException('OpenRouter embeddings request failed with HTTP '.$response->status().'.');
         }
 
         $payload = $response->json();

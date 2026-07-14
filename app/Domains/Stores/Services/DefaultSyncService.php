@@ -7,6 +7,7 @@ namespace App\Domains\Stores\Services;
 use App\Domains\Stores\Adapters\Shopify\ShopifyClient;
 use App\Domains\Stores\Exceptions\InvalidCredentialsException;
 use App\Domains\Stores\Exceptions\RateLimitException;
+use App\Support\SensitiveData;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Domains\Stores\Services\Sync\BulkSyncRunner;
 use App\Domains\Stores\Services\Sync\IncrementalSyncRunner;
@@ -30,7 +31,7 @@ final class DefaultSyncService implements SyncService
 
             throw $exception;
         } catch (\Throwable $exception) {
-            $this->markSyncFailed($connection, $exception->getMessage());
+            $this->markSyncFailed($connection, SensitiveData::safeThrowableMessage($exception));
 
             throw $exception;
         }
@@ -48,7 +49,7 @@ final class DefaultSyncService implements SyncService
 
             throw $exception;
         } catch (\Throwable $exception) {
-            $this->markSyncFailed($connection, $exception->getMessage());
+            $this->markSyncFailed($connection, SensitiveData::safeThrowableMessage($exception));
 
             throw $exception;
         }
@@ -144,7 +145,7 @@ final class DefaultSyncService implements SyncService
     private function handleSyncException(StoreConnection $connection, \Throwable $exception): void
     {
         if ($exception instanceof InvalidCredentialsException) {
-            $this->markConnectionError($connection, $exception->getMessage());
+            $this->markConnectionError($connection, SensitiveData::safeThrowableMessage($exception));
         }
     }
 }

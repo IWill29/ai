@@ -7,14 +7,13 @@ namespace App\Http\Controllers\Chat;
 use App\Domains\Accounts\Models\OpenRouterCredential;
 use App\Domains\AI\Contracts\AgentService;
 use App\Domains\AI\Exceptions\AgentException;
-use App\Domains\AI\Exceptions\ModelNotAllowedException;
-use App\Domains\AI\Services\ModelAllowList;
 use App\Domains\Billing\Exceptions\MessageLimitReachedException;
 use App\Domains\Chat\Contracts\ChatService;
 use App\Domains\Chat\Models\Conversation;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\StreamMessageRequest;
 use App\Http\Support\SseEmitter;
+use App\Support\SensitiveData;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
@@ -25,7 +24,6 @@ final class AgentStreamController extends Controller
         Conversation $conversation,
         AgentService $agent,
         ChatService $chat,
-        ModelAllowList $models,
     ): StreamedResponse {
         $this->authorize('update', $conversation);
 
@@ -38,12 +36,6 @@ final class AgentStreamController extends Controller
         }
 
         if ($request->filled('model')) {
-            try {
-                $models->assertAllowed($request->string('model')->value());
-            } catch (ModelNotAllowedException $e) {
-                abort(422, $e->getMessage());
-            }
-
             $chat->updateConversationModel($conversation->id, $request->string('model')->value());
         }
 
@@ -58,7 +50,10 @@ final class AgentStreamController extends Controller
                     attachmentIds: $request->input('attachment_ids', []),
                 );
             } catch (MessageLimitReachedException|AgentException $e) {
-                $emitter->emit('error', ['message' => $e->getMessage(), 'code' => class_basename($e)]);
+                $emitter->emit('error', [
+                    'message' => SensitiveData::sanitizeMessage($e->getMessage()),
+                    'code' => class_basename($e),
+                ]);
             } catch (Throwable $e) {
                 $emitter->emit('error', ['message' => 'Agent run failed.', 'code' => 'agent_error']);
             }
@@ -82,7 +77,7 @@ final class AgentStreamController extends Controller
                     emit: fn (string $event, array $data) => $emitter->emit($event, $data),
                 );
             } catch (Throwable $e) {
-                $emitter->emit('error', ['message' => $e->getMessage(), 'code' => 'agent_resume_error']);
+                $emitter->emit('error', ['message' => 'Agent resume failed.', 'code' => 'agent_resume_error']);
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',

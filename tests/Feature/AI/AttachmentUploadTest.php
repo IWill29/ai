@@ -18,11 +18,11 @@ class AttachmentUploadTest extends TestCase
 
     public function test_uploads_attachment_for_account(): void
     {
-        Storage::fake('local');
+        Storage::fake('attachments');
 
         $user = User::factory()->create();
 
-        $file = UploadedFile::fake()->image('product.jpg', 200, 200);
+        $file = UploadedFile::fake()->createWithContent('product.jpg', "\xFF\xD8\xFF\xE0".str_repeat("\x00", 32));
 
         $response = $this->actingAs($user)->post(route('attachments.store'), [
             'file' => $file,

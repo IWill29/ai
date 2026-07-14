@@ -52,12 +52,13 @@ class StoreController extends Controller
     }
 
     public function destroy(
+        Request $request,
         StoreConnection $storeConnection,
         DisconnectStoreAction $disconnectStore,
     ): RedirectResponse {
         $this->authorize('delete', $storeConnection);
 
-        $disconnectStore->execute($storeConnection);
+        $disconnectStore->execute($storeConnection, $request->user()->id);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -109,6 +110,7 @@ class StoreController extends Controller
         try {
             $reconnectShopifyStore->execute(
                 connection: $storeConnection,
+                userId: $request->user()->id,
                 accessToken: $request->validated('access_token'),
             );
         } catch (InvalidCredentialsException $exception) {

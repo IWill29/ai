@@ -19,6 +19,8 @@ class OpenRouterController extends Controller
 {
     public function edit(Request $request): Response
     {
+        $this->authorize('viewAny', OpenRouterCredential::class);
+
         $credential = OpenRouterCredential::query()
             ->where('account_id', $request->user()->account_id)
             ->first();
@@ -41,6 +43,7 @@ class OpenRouterController extends Controller
         try {
             $saveOpenRouterKey->execute(
                 accountId: $request->user()->account_id,
+                userId: $request->user()->id,
                 apiKey: $request->validated('api_key'),
                 defaultModel: $request->validated('default_model'),
             );

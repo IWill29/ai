@@ -6,6 +6,7 @@ namespace App\Domains\Stores\Jobs;
 
 use App\Domains\Stores\Models\WebhookEvent;
 use App\Domains\Stores\Services\Sync\MirrorUpserter;
+use App\Support\SensitiveData;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -47,7 +48,7 @@ final class ProcessWebhookEventJob implements ShouldQueue
         } catch (Throwable $exception) {
             $event->update([
                 'status' => 'failed',
-                'error' => $exception->getMessage(),
+                'error' => SensitiveData::safeThrowableMessage($exception),
             ]);
 
             throw $exception;

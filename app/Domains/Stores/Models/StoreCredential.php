@@ -15,6 +15,12 @@ class StoreCredential extends Model
 {
     use HasUuids;
 
+    /** @var list<string> */
+    protected $hidden = [
+        'access_token',
+        'secrets',
+    ];
+
     protected $fillable = [
         'store_connection_id',
         'access_token',

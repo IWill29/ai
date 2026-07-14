@@ -12,6 +12,7 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -49,6 +50,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureViews();
         $this->configureEmailVerificationUrls();
         $this->configureRateLimiting();
+        $this->attachThrottledAuthRoutes();
     }
 
     /**
@@ -124,6 +126,12 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
 
+        RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by(
+            $request->session()->get('login.id') ?: $request->ip(),
+        ));
+
+        RateLimiter::for('passkeys', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+
         RateLimiter::for('openrouter-validate', fn (Request $request) => Limit::perMinute(5)->by(
             $request->user()?->id ?: $request->ip(),
         ));
@@ -132,8 +140,37 @@ class FortifyServiceProvider extends ServiceProvider
             (int) config('agent.rate_limit.per_minute', 10),
         )->by($request->user()?->account_id ?: $request->ip()));
 
-        RateLimiter::for('attachments', fn (Request $request) => Limit::perMinute(20)->by(
-            $request->user()?->account_id ?: $request->ip(),
+        RateLimiter::for('attachments', fn (Request $request) => Limit::perMinute(
+            (int) config('agent.rate_limit.attachments_per_minute', 20),
+        )->by($request->user()?->account_id ?: $request->ip()));
+
+        RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(
+            (int) config('shopify.webhooks.rate_limit_per_minute', 120),
+        )->by(
+            (string) $request->route('storeConnectionId').'|'.$request->ip(),
         ));
+    }
+
+    /**
+     * Fortify does not throttle register or password-reset routes by default.
+     */
+    private function attachThrottledAuthRoutes(): void
+    {
+        $this->app->booted(function (): void {
+            $throttledRoutes = [
+                'register.store' => 'throttle:register',
+                'password.email' => 'throttle:password-reset',
+            ];
+
+            $routes = Route::getRoutes();
+
+            foreach ($routes instanceof \Traversable ? $routes : [] as $route) {
+                $name = $route->getName();
+
+                if ($name !== null && isset($throttledRoutes[$name])) {
+                    $route->middleware($throttledRoutes[$name]);
+                }
+            }
+        });
     }
 }

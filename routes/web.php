@@ -8,6 +8,7 @@ use App\Http\Controllers\Chat\ConversationController;
 use App\Http\Controllers\Chat\ModelAllowListController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\Settings\OpenRouterController;
 use App\Http\Controllers\Stores\ConnectStoreController;
 use App\Http\Controllers\Stores\StoreController;
@@ -21,13 +22,15 @@ Route::get('/', [LandingController::class, 'index'])
     ->name('home');
 
 Route::post('/webhooks/shopify/{storeConnectionId}', [ShopifyWebhookController::class, 'handle'])
-    ->middleware(VerifyShopifyWebhook::class)
+    ->middleware([VerifyShopifyWebhook::class, 'throttle:webhooks'])
     ->name('webhooks.shopify');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('agent/models', ModelAllowListController::class)->name('agent.models');
-    Route::post('conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::post('conversations', [ConversationController::class, 'store'])
+        ->middleware('throttle:agent')
+        ->name('conversations.store');
     Route::post('conversations/{conversation}/stream', [AgentStreamController::class, 'store'])
         ->middleware('throttle:agent')
         ->name('conversations.stream');
@@ -35,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:agent')
         ->name('conversations.stream.resume');
     Route::post('action-steps/{actionStep}/confirm', [ConfirmationController::class, 'store'])
+        ->middleware('throttle:agent')
         ->name('action-steps.confirm');
     Route::post('attachments', [AttachmentController::class, 'store'])
         ->middleware('throttle:attachments')
@@ -53,7 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('settings/openrouter', [OpenRouterController::class, 'store'])
         ->middleware('throttle:openrouter-validate')
         ->name('settings.openrouter.store');
-    Route::inertia('settings/billing', 'settings/billing')->name('settings.billing');
+    Route::get('settings/billing', [BillingController::class, 'index'])->name('settings.billing');
 });
 
 require __DIR__.'/settings.php';

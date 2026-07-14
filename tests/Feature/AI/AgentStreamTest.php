@@ -169,11 +169,12 @@ class AgentStreamTest extends TestCase
         $this->createOpenRouterCredential($user);
         $conversation = $this->createConversation($user, $store);
 
-        $response = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
+        $response = $this->actingAs($user)->postJson(route('conversations.stream', $conversation), [
             'message' => 'Hi',
             'model' => 'gpt-3.5-turbo',
         ]);
 
-        $response->assertStatus(422);
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('model');
     }
 }

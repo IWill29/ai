@@ -9,6 +9,11 @@ use App\Models\User;
 
 class MessageAttachmentPolicy
 {
+    public function create(User $user): bool
+    {
+        return $user->account_id !== null;
+    }
+
     public function view(User $user, MessageAttachment $attachment): bool
     {
         return $user->account_id === $attachment->account_id;

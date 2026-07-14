@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Domains\AI\Services;
 
 use App\Domains\Chat\Models\ActionStep;
-use App\Domains\Stores\Actions\RecordStoreWriteAuditAction;
+use App\Domains\Billing\Actions\RecordAuditAction;
+use App\Support\SensitiveData;
 
 final class AuditLogger
 {
     public function __construct(
-        private readonly RecordStoreWriteAuditAction $recordAudit,
+        private readonly RecordAuditAction $recordAudit,
     ) {}
 
     /**
@@ -20,15 +21,19 @@ final class AuditLogger
     {
         $conversation = $step->message->conversation;
 
+        $summary = $result['ok']
+            ? SensitiveData::redactContext(is_array($result['data'] ?? null) ? $result['data'] : [])
+            : SensitiveData::sanitizeMessage((string) ($result['error'] ?? 'Tool execution failed.'));
+
         $this->recordAudit->execute(
             accountId: $conversation->account_id,
             userId: $conversation->user_id,
             storeConnectionId: (string) $conversation->store_connection_id,
             action: 'tool.'.$step->tool_name,
             context: [
-                'arguments' => $step->arguments,
+                'arguments' => SensitiveData::redactContext($step->arguments ?? []),
                 'result' => $result['ok'] ? 'success' : 'failed',
-                'summary' => $result['ok'] ? ($result['data'] ?? null) : ($result['error'] ?? null),
+                'summary' => $summary,
             ],
         );
     }

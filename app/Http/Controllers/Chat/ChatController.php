@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Chat;
 
+use App\Domains\Accounts\Models\OpenRouterCredential;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Chat\ChatIndexRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class ChatController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(ChatIndexRequest $request): Response
     {
         $accountId = $request->user()->account_id;
-        $requestedStoreId = $request->query('store_id');
+        $requestedStoreId = $request->validated('store_id');
 
         $connection = StoreConnection::query()
             ->where('account_id', $accountId)
@@ -33,10 +34,7 @@ final class ChatController extends Controller
                 ->first();
         }
 
-        $prefillPrompt = $request->query('prompt');
-        $prefillPrompt = is_string($prefillPrompt) && $prefillPrompt !== ''
-            ? $prefillPrompt
-            : null;
+        $prefillPrompt = $request->validated('prompt');
 
         return Inertia::render('chat/index', [
             'storeSync' => $this->storeSyncProps($connection),

@@ -125,7 +125,7 @@ final class OpenRouterAdapter implements AgentLlmPort
         }
 
         if ($response->failed()) {
-            throw new LlmUnavailableException('OpenRouter HTTP '.$response->status().': '.$response->body());
+            throw new LlmUnavailableException('OpenRouter request failed with HTTP '.$response->status().'.');
         }
 
         return $response;
