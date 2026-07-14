@@ -141,6 +141,7 @@ class ConnectShopifyStoreTest extends TestCase
 
         app(ConnectShopifyStoreAction::class)->execute(
             accountId: $user->account_id,
+            userId: $user->id,
             domain: 'demo.myshopify.com',
             accessToken: 'shpat_invalid_token_123456789',
             apiSecret: 'test_api_secret_key_12345',
