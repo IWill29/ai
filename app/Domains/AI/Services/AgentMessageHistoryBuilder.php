@@ -28,7 +28,7 @@ final class AgentMessageHistoryBuilder
     {
         $memories = array_map(
             fn (array $memory): string => $memory['content'],
-            $this->memory->recall($conversation->account_id, ''),
+            $this->memory->recall($conversation->account_id, $this->resolveRecallQuery($conversation->id, $latestUser)),
         );
         $messages = [
             new LlmMessage(
@@ -118,5 +118,24 @@ final class AgentMessageHistoryBuilder
         }
 
         return $storedToolCalls;
+    }
+
+    private function resolveRecallQuery(string $conversationId, ?MessageDTO $latestUser): string
+    {
+        if ($latestUser !== null && $latestUser->content !== null && trim($latestUser->content) !== '') {
+            return trim($latestUser->content);
+        }
+
+        $history = $this->chat->getHistory($conversationId);
+
+        for ($index = count($history) - 1; $index >= 0; $index--) {
+            $message = $history[$index];
+
+            if ($message->role === MessageRole::User->value && $message->content !== null && trim($message->content) !== '') {
+                return trim($message->content);
+            }
+        }
+
+        return '';
     }
 }

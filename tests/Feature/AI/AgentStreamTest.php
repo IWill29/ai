@@ -5,21 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\AI;
 
 use App\Domains\AI\Contracts\AgentLlmPort;
-use App\Domains\AI\Contracts\AgentService;
 use App\Domains\AI\DTOs\LlmResponse;
-use App\Domains\AI\DTOs\ToolCall;
 use App\Domains\AI\Enums\StepStatus;
-use App\Domains\AI\Services\DefaultAgentService;
 use App\Domains\Billing\Models\UsageCounter;
 use App\Domains\Chat\Models\ActionStep;
-use App\Domains\Stores\Contracts\StoreAdapterFactory;
-use App\Domains\Stores\Contracts\StorePort;
-use App\Domains\Stores\DTOs\OrderDTO;
 use App\Models\User;
-use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Tests\Concerns\CreatesAgentFixtures;
+use Tests\Concerns\MocksAgentLlm;
 use Tests\Concerns\SeedsPlans;
 use Tests\Support\AgentTestData;
 use Tests\TestCase;
@@ -27,6 +20,7 @@ use Tests\TestCase;
 class AgentStreamTest extends TestCase
 {
     use CreatesAgentFixtures;
+    use MocksAgentLlm;
     use RefreshDatabase;
     use SeedsPlans;
 
@@ -35,9 +29,7 @@ class AgentStreamTest extends TestCase
         parent::setUp();
 
         $this->seedPlans();
-        $this->app->forgetInstance(AgentLlmPort::class);
-        $this->app->forgetInstance(AgentService::class);
-        $this->app->forgetInstance(DefaultAgentService::class);
+        $this->resetAgentContainer();
     }
 
     public function test_streams_text_deltas_via_sse(): void
@@ -85,11 +77,10 @@ class AgentStreamTest extends TestCase
         $this->mockFulfillOrderLlm();
 
         $response = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Fulfill order 1',
+            'message' => AgentTestData::CHAT_FULFILL_ORDER_1,
         ]);
 
-        $response->assertOk();
-        $this->assertStringContainsString('event: confirmation_required', $response->streamedContent());
+        $this->assertStreamRequiresConfirmation($response);
 
         $step = ActionStep::query()->first();
         $this->assertNotNull($step);
@@ -106,42 +97,15 @@ class AgentStreamTest extends TestCase
         $this->mockFulfillOrderLlm();
 
         $response = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Fulfill order 1',
+            'message' => AgentTestData::CHAT_FULFILL_ORDER_1,
         ]);
 
-        $response->assertOk();
-        $this->assertStringContainsString('confirmation_required', $response->streamedContent(), $response->streamedContent());
+        $this->assertStreamRequiresConfirmation($response);
 
         $step = ActionStep::query()->firstOrFail();
-
-        $orderDto = new OrderDTO(
-            externalId: AgentTestData::ORDER_1,
-            orderNumber: '#1',
-            financialStatus: 'paid',
-            fulfillmentStatus: 'fulfilled',
-            totalPriceMinor: 1000,
-            currency: 'EUR',
-            customerExternalId: null,
-            lineItems: [],
-            placedAt: new DateTimeImmutable,
-        );
-
-        $storePort = Mockery::mock(StorePort::class);
-        $storePort->shouldReceive('fulfillOrder')
-            ->once()
-            ->with(AgentTestData::ORDER_1, null)
-            ->andReturn($orderDto);
-
-        $factory = Mockery::mock(StoreAdapterFactory::class);
-        $factory->shouldReceive('for')->andReturn($storePort);
-        $this->instance(StoreAdapterFactory::class, $factory);
-
-        $this->actingAs($user)->postJson(route('action-steps.confirm', $step), [
-            'confirmed' => true,
-        ])->assertOk();
+        $this->confirmFulfillment($user, $step, AgentTestData::ORDER_1, orderNumber: '#1');
 
         $step->refresh();
-        $this->assertSame(StepStatus::Done->value, $step->status);
         $this->assertTrue($step->confirmed);
     }
 
@@ -211,27 +175,5 @@ class AgentStreamTest extends TestCase
         ]);
 
         $response->assertStatus(422);
-    }
-
-    private function mockFulfillOrderLlm(): void
-    {
-        $this->mock(AgentLlmPort::class, function ($mock): void {
-            $mock->shouldReceive('stream')
-                ->once()
-                ->andReturn(new LlmResponse(
-                    content: null,
-                    toolCalls: [
-                        new ToolCall(
-                            id: 'call_fulfill_1',
-                            name: 'fulfill_order',
-                            arguments: ['external_id' => AgentTestData::ORDER_1],
-                        ),
-                    ],
-                    finishReason: 'tool_calls',
-                    promptTokens: 10,
-                    completionTokens: 2,
-                    model: AgentTestData::DEFAULT_MODEL,
-                ));
-        });
     }
 }

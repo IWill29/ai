@@ -8,10 +8,12 @@ use App\Domains\Accounts\Contracts\AccountService;
 use App\Domains\Accounts\Services\DefaultAccountService;
 use App\Domains\AI\Contracts\AgentLlmPort;
 use App\Domains\AI\Contracts\AgentService;
+use App\Domains\AI\Contracts\EmbeddingPort;
 use App\Domains\AI\Contracts\MemoryService;
 use App\Domains\AI\Services\DefaultAgentService;
 use App\Domains\AI\Services\OpenRouterAdapter;
-use App\Domains\AI\Services\StubMemoryService;
+use App\Domains\AI\Services\OpenRouterEmbeddingAdapter;
+use App\Domains\AI\Services\VectorMemoryService;
 use App\Domains\Billing\Contracts\BillingService;
 use App\Domains\Billing\Services\StubBillingService;
 use App\Domains\Chat\Contracts\AttachmentUploadService;
@@ -37,8 +39,9 @@ class DomainServiceProvider extends ServiceProvider
         StoreAdapterFactory::class => StoreAdapterManager::class,
         SyncService::class => DefaultSyncService::class,
         AgentLlmPort::class => OpenRouterAdapter::class,
+        EmbeddingPort::class => OpenRouterEmbeddingAdapter::class,
         AgentService::class => DefaultAgentService::class,
-        MemoryService::class => StubMemoryService::class,
+        MemoryService::class => VectorMemoryService::class,
         ChatService::class => DefaultChatService::class,
         AttachmentUploadService::class => DefaultAttachmentUploadService::class,
         BillingService::class => StubBillingService::class,
