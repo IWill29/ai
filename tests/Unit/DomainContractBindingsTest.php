@@ -10,7 +10,7 @@ use App\Domains\AI\Contracts\AgentLlmPort;
 use App\Domains\AI\Contracts\AgentService;
 use App\Domains\AI\Contracts\MemoryService;
 use App\Domains\AI\Services\OpenRouterAdapter;
-use App\Domains\AI\Services\StubMemoryService;
+use App\Domains\AI\Services\VectorMemoryService;
 use App\Domains\Billing\Contracts\BillingService;
 use App\Domains\Billing\Services\StubBillingService;
 use App\Domains\Chat\Contracts\AttachmentUploadService;
@@ -40,9 +40,9 @@ class DomainContractBindingsTest extends TestCase
         $this->assertInstanceOf(AgentService::class, app(AgentService::class));
     }
 
-    public function test_memory_service_resolves_to_stub(): void
+    public function test_memory_service_resolves_to_vector_memory_service(): void
     {
-        $this->assertInstanceOf(StubMemoryService::class, app(MemoryService::class));
+        $this->assertInstanceOf(VectorMemoryService::class, app(MemoryService::class));
     }
 
     public function test_chat_service_resolves(): void

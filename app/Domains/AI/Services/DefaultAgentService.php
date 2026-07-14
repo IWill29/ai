@@ -34,6 +34,7 @@ final class DefaultAgentService implements AgentService
         private readonly ModelAllowList $modelAllowList,
         private readonly AgentRunLoop $runLoop,
         private readonly AgentMessageHistoryBuilder $messageHistory,
+        private readonly AgentMemoryRecorder $memoryRecorder,
     ) {}
 
     public function runWithStream(
@@ -56,6 +57,7 @@ final class DefaultAgentService implements AgentService
         }
 
         $userDto = $this->chat->appendUserMessage($conversationId, $userMessage, $attachmentIds);
+        $this->memoryRecorder->recordPreferenceIfPresent($conversation->account_id, $userMessage);
         $assistantMessage = $this->chat->appendAssistantMessage($conversationId, '', $model);
         $this->chat->updateConversationModel($conversationId, $model);
 
@@ -179,6 +181,12 @@ final class DefaultAgentService implements AgentService
 
         if ($result['ok']) {
             $this->audit->logWrite($step, $result);
+            $this->memoryRecorder->recordConfirmedAction(
+                accountId: $conversation->account_id,
+                tool: $tool,
+                args: $step->arguments ?? [],
+                actionStepId: $actionStepId,
+            );
         }
     }
 
