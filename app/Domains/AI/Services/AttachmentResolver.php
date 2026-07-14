@@ -33,7 +33,8 @@ final class AttachmentResolver
 
         return $attachments
             ->map(fn (MessageAttachment $attachment) => new ProductImageInput(
-                localPath: Storage::disk('local')->path($attachment->storage_path),
+                localPath: Storage::disk((string) config('agent.attachment.disk', 'attachments'))
+                    ->path($attachment->storage_path),
                 mimeType: $attachment->mime_type,
                 filename: $attachment->filename,
             ))
@@ -49,7 +50,8 @@ final class AttachmentResolver
             ->get();
 
         foreach ($attachments as $attachment) {
-            Storage::disk('local')->delete($attachment->storage_path);
+            Storage::disk((string) config('agent.attachment.disk', 'attachments'))
+                ->delete($attachment->storage_path);
             $attachment->update(['status' => 'consumed']);
         }
     }

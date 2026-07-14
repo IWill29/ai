@@ -38,7 +38,7 @@ final class VectorMemoryService implements MemoryService
         } catch (\Throwable $exception) {
             Log::warning('agent.memory.remember_failed', [
                 'account_id' => $accountId,
-                'message' => $exception->getMessage(),
+                'exception' => $exception::class,
             ]);
 
             return;
@@ -77,7 +77,7 @@ final class VectorMemoryService implements MemoryService
                 } catch (\Throwable $exception) {
                     Log::warning('agent.memory.recall_failed', [
                         'account_id' => $accountId,
-                        'message' => $exception->getMessage(),
+                        'exception' => $exception::class,
                     ]);
                 }
             }

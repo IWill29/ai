@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Domains\Stores\Models\StoreConnection;
+use App\Http\Requests\Concerns\InteractsWithOwnedResources;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 final class DashboardFilterRequest extends FormRequest
 {
+    use InteractsWithOwnedResources;
+
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return $this->user()?->can('viewAny', StoreConnection::class) ?? false;
     }
 
     /**
@@ -20,16 +23,10 @@ final class DashboardFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'store_id' => [
-                'nullable',
-                'uuid',
-                Rule::exists('store_connections', 'id')->where(
-                    fn ($query) => $query->where('account_id', $this->user()?->account_id),
-                ),
-            ],
+            'store_id' => ['nullable', 'uuid', $this->ownedStoreConnectionRule()],
             'range' => ['nullable', 'in:7d,30d,90d,month,custom'],
-            'from' => ['required_if:range,custom', 'date'],
-            'to' => ['required_if:range,custom', 'date', 'after_or_equal:from'],
+            'from' => ['required_if:range,custom', 'nullable', 'date'],
+            'to' => ['required_if:range,custom', 'nullable', 'date', 'after_or_equal:from'],
         ];
     }
 

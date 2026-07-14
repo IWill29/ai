@@ -44,6 +44,8 @@ class OpenRouterKeyTest extends TestCase
             ->first();
 
         $this->assertNotNull($credential);
+        $this->assertSame('sk-or-v1-test-key-abcdefghij', $credential->api_key);
+        $this->assertNotSame('sk-or-v1-test-key-abcdefghij', $credential->getRawOriginal('api_key'));
         $this->assertSame('openai/gpt-4o-mini', $credential->default_model);
         $this->assertNotNull($credential->validated_at);
     }

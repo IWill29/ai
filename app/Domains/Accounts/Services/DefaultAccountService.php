@@ -38,6 +38,6 @@ final class DefaultAccountService implements AccountService
 
     public function deleteAccount(string $accountId): void
     {
-        DeleteAccountJob::dispatch($accountId)->afterCommit();
+        DeleteAccountJob::dispatchSync($accountId);
     }
 }

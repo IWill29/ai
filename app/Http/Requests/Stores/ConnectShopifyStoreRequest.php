@@ -20,9 +20,9 @@ class ConnectShopifyStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'domain' => ['required', 'string', 'regex:/^[a-z0-9-]+\.myshopify\.com$/i'],
-            'access_token' => ['required', 'string', 'starts_with:shpat_'],
-            'api_secret' => ['required', 'string', 'min:16'],
+            'domain' => ['required', 'string', 'regex:/^[a-z0-9-]+\.myshopify\.com$/i', 'max:255'],
+            'access_token' => ['required', 'string', 'starts_with:shpat_', 'min:20', 'max:128'],
+            'api_secret' => ['required', 'string', 'min:16', 'max:255'],
             'name' => ['nullable', 'string', 'max:120'],
         ];
     }

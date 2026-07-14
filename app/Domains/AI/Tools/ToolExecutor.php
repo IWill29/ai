@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\AI\Tools;
 
-use App\Domains\AI\Enums\ToolName;
+use App\Support\SensitiveData;
 use App\Domains\AI\Exceptions\StoreAdapterUnavailableException;
 use App\Domains\AI\Services\AttachmentResolver;
 use App\Domains\Stores\Contracts\StorePort;
@@ -39,7 +39,7 @@ final class ToolExecutor
 
             return ['ok' => true, 'data' => $this->executeWrite($storePort, $accountId, $tool, $args)];
         } catch (\Throwable $e) {
-            return ['ok' => false, 'error' => $e->getMessage()];
+            return ['ok' => false, 'error' => SensitiveData::safeThrowableMessage($e)];
         }
     }
 

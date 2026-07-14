@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domains\Stores\Actions;
 
-use App\Domains\Billing\Models\AuditLog;
-use Illuminate\Support\Carbon;
+use App\Domains\Billing\Actions\RecordAuditAction;
 
+/**
+ * @deprecated Use RecordAuditAction directly.
+ */
 final class RecordStoreWriteAuditAction
 {
+    public function __construct(
+        private readonly RecordAuditAction $recordAudit,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $context
      */
@@ -18,14 +24,13 @@ final class RecordStoreWriteAuditAction
         string $storeConnectionId,
         string $action,
         array $context = [],
-    ): AuditLog {
-        return AuditLog::query()->create([
-            'account_id' => $accountId,
-            'user_id' => $userId,
-            'store_connection_id' => $storeConnectionId,
-            'action' => $action,
-            'context' => $context,
-            'performed_at' => Carbon::now(),
-        ]);
+    ): \App\Domains\Billing\Models\AuditLog {
+        return $this->recordAudit->execute(
+            accountId: $accountId,
+            userId: $userId,
+            storeConnectionId: $storeConnectionId,
+            action: $action,
+            context: $context,
+        );
     }
 }

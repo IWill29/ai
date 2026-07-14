@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Domains\Billing\Actions\RecordAuditAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
 use Illuminate\Http\RedirectResponse;
@@ -25,11 +26,20 @@ class SecurityController extends Controller
     /**
      * Update the user's password.
      */
-    public function update(PasswordUpdateRequest $request): RedirectResponse
+    public function update(PasswordUpdateRequest $request, RecordAuditAction $recordAudit): RedirectResponse
     {
-        $request->user()->update([
+        $user = $request->user();
+        $user->update([
             'password' => $request->password,
         ]);
+
+        $recordAudit->execute(
+            accountId: (string) $user->account_id,
+            userId: $user->id,
+            storeConnectionId: null,
+            action: 'password.update',
+            context: [],
+        );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
 

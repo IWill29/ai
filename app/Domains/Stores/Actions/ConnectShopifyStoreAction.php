@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Stores\Actions;
 
+use App\Domains\Billing\Actions\RecordAuditAction;
 use App\Domains\Billing\Contracts\BillingService;
 use App\Domains\Billing\Exceptions\StoreLimitReachedException;
 use App\Domains\Stores\Adapters\Shopify\ShopifyAdapter;
@@ -20,10 +21,12 @@ final class ConnectShopifyStoreAction
 {
     public function __construct(
         private readonly BillingService $billing,
+        private readonly RecordAuditAction $recordAudit,
     ) {}
 
     public function execute(
         string $accountId,
+        int $userId,
         string $domain,
         string $accessToken,
         string $apiSecret,
@@ -39,7 +42,7 @@ final class ConnectShopifyStoreAction
             throw new InvalidCredentialsException('Could not connect — check the domain and token.');
         }
 
-        return DB::transaction(function () use ($accountId, $domain, $accessToken, $apiSecret, $name): StoreConnection {
+        return DB::transaction(function () use ($accountId, $userId, $domain, $accessToken, $apiSecret, $name): StoreConnection {
             $connection = StoreConnection::query()->create([
                 'account_id' => $accountId,
                 'platform' => Platform::Shopify->value,
@@ -68,6 +71,18 @@ final class ConnectShopifyStoreAction
                 'access_token' => $accessToken,
                 'secrets' => ['api_secret' => $apiSecret],
             ]);
+
+            $this->recordAudit->execute(
+                accountId: $accountId,
+                userId: $userId,
+                storeConnectionId: $connection->id,
+                action: 'store.connect',
+                context: [
+                    'platform' => Platform::Shopify->value,
+                    'domain' => $connection->domain,
+                    'name' => $connection->name,
+                ],
+            );
 
             InitialBulkSyncJob::dispatch($connection->id)->afterCommit();
             RegisterShopifyWebhooksJob::dispatch($connection->id)->afterCommit();

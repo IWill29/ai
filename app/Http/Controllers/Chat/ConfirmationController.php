@@ -17,7 +17,7 @@ final class ConfirmationController extends Controller
         ActionStep $actionStep,
         AgentService $agent,
     ): JsonResponse {
-        $this->authorize('update', $actionStep->message->conversation);
+        $this->authorize('update', $actionStep);
 
         $agent->resolveConfirmation($actionStep->id, $request->boolean('confirmed'));
 

@@ -42,7 +42,8 @@ final class MultimodalMessageBuilder
     private function toDataUrl(string $attachmentId): string
     {
         $attachment = MessageAttachment::query()->findOrFail($attachmentId);
-        $binary = Storage::disk('local')->get($attachment->storage_path);
+        $binary = Storage::disk((string) config('agent.attachment.disk', 'attachments'))
+            ->get($attachment->storage_path);
 
         return 'data:'.$attachment->mime_type.';base64,'.base64_encode($binary);
     }

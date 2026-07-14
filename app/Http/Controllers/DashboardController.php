@@ -16,6 +16,8 @@ final class DashboardController extends Controller
 {
     public function index(DashboardFilterRequest $request): Response
     {
+        $this->authorize('viewAny', StoreConnection::class);
+
         $accountId = $request->user()->account_id;
 
         $stores = StoreConnection::query()

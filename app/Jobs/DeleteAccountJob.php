@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Domains\Accounts\Models\Account;
-use App\Domains\Billing\Contracts\BillingService;
+use App\Domains\Accounts\Actions\PurgeAccountDataAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\DB;
 
 class DeleteAccountJob implements ShouldQueue
 {
@@ -16,18 +14,8 @@ class DeleteAccountJob implements ShouldQueue
 
     public function __construct(public string $accountId) {}
 
-    public function handle(BillingService $billing): void
+    public function handle(PurgeAccountDataAction $purgeAccount): void
     {
-        DB::transaction(function () use ($billing): void {
-            $account = Account::withTrashed()->findOrFail($this->accountId);
-
-            $billing->cancelSubscription($this->accountId);
-
-            foreach ($account->storeConnections()->withTrashed()->get() as $storeConnection) {
-                $storeConnection->forceDelete();
-            }
-
-            $account->forceDelete();
-        });
+        $purgeAccount->execute($this->accountId);
     }
 }

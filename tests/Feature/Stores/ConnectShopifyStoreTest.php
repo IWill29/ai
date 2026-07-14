@@ -73,6 +73,8 @@ class ConnectShopifyStoreTest extends TestCase
         $this->assertNotNull($credential);
         $this->assertSame('shpat_test_token_1234567890', $credential->access_token);
         $this->assertNotSame('shpat_test_token_1234567890', $credential->getRawOriginal('access_token'));
+        $this->assertSame('test_api_secret_key_12345', $credential->secrets['api_secret']);
+        $this->assertStringNotContainsString('test_api_secret_key_12345', (string) $credential->getRawOriginal('secrets'));
     }
 
     public function test_rejects_an_invalid_token(): void

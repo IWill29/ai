@@ -31,6 +31,7 @@ class ConnectStoreController extends Controller
         try {
             $connectShopifyStore->execute(
                 accountId: $request->user()->account_id,
+                userId: $request->user()->id,
                 domain: $request->validated('domain'),
                 accessToken: $request->validated('access_token'),
                 apiSecret: $request->validated('api_secret'),

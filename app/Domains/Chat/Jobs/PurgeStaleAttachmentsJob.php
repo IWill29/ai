@@ -19,7 +19,8 @@ final class PurgeStaleAttachmentsJob implements ShouldQueue
             ->where('status', 'pending')
             ->where('expires_at', '<', now())
             ->each(function (MessageAttachment $attachment): void {
-                Storage::disk('local')->delete($attachment->storage_path);
+                Storage::disk((string) config('agent.attachment.disk', 'attachments'))
+                    ->delete($attachment->storage_path);
                 $attachment->delete();
             });
     }

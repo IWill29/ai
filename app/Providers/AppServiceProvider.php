@@ -2,11 +2,16 @@
 
 namespace App\Providers;
 
+use App\Domains\Accounts\Models\Account;
+use App\Domains\Accounts\Models\OpenRouterCredential;
+use App\Domains\Accounts\Policies\AccountPolicy;
+use App\Domains\Accounts\Policies\OpenRouterCredentialPolicy;
 use App\Domains\Chat\Models\ActionStep;
 use App\Domains\Chat\Models\Conversation;
 use App\Domains\Chat\Models\MessageAttachment;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Domains\Stores\Policies\StoreConnectionPolicy;
+use App\Policies\ActionStepPolicy;
 use App\Policies\ConversationPolicy;
 use App\Policies\MessageAttachmentPolicy;
 use Carbon\CarbonImmutable;
@@ -97,9 +102,12 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configurePolicies(): void
     {
+        Gate::policy(Account::class, AccountPolicy::class);
+        Gate::policy(ActionStep::class, ActionStepPolicy::class);
         Gate::policy(Conversation::class, ConversationPolicy::class);
-        Gate::policy(StoreConnection::class, StoreConnectionPolicy::class);
         Gate::policy(MessageAttachment::class, MessageAttachmentPolicy::class);
+        Gate::policy(OpenRouterCredential::class, OpenRouterCredentialPolicy::class);
+        Gate::policy(StoreConnection::class, StoreConnectionPolicy::class);
     }
 
     /**

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Stores\Services;
 
-use App\Domains\Stores\Actions\RecordStoreWriteAuditAction;
+use App\Domains\Billing\Actions\RecordAuditAction;
 use App\Domains\Stores\Contracts\StoreAdapterFactory;
 use App\Domains\Stores\Contracts\StorePort;
 use App\Domains\Stores\Models\StoreConnection;
@@ -17,7 +17,7 @@ final class StoreWriteService
 {
     public function __construct(
         private readonly StoreAdapterFactory $adapterFactory,
-        private readonly RecordStoreWriteAuditAction $recordAudit,
+        private readonly RecordAuditAction $recordAudit,
     ) {}
 
     /**
