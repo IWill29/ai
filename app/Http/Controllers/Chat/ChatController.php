@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Chat;
 
+use App\Domains\Accounts\Models\OpenRouterCredential;
+use App\Domains\AI\Services\ModelAllowList;
+use App\Domains\Chat\Contracts\ChatService;
+use App\Domains\Chat\Models\Conversation;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -12,35 +16,73 @@ use Inertia\Response;
 
 final class ChatController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, ChatService $chat, ModelAllowList $models): Response
     {
-        $accountId = $request->user()->account_id;
+        return $this->renderChatPage($request, $chat, $models);
+    }
+
+    public function show(Request $request, Conversation $conversation, ChatService $chat, ModelAllowList $models): Response
+    {
+        $this->authorize('view', $conversation);
+
+        return $this->renderChatPage(
+            $request,
+            $chat,
+            $models,
+            $conversation,
+        );
+    }
+
+    private function renderChatPage(
+        Request $request,
+        ChatService $chat,
+        ModelAllowList $models,
+        ?Conversation $activeConversation = null,
+    ): Response {
+        $accountId = (string) $request->user()->account_id;
         $requestedStoreId = $request->query('store_id');
 
-        $connection = StoreConnection::query()
+        $stores = StoreConnection::query()
             ->where('account_id', $accountId)
-            ->when(
-                is_string($requestedStoreId) && $requestedStoreId !== '',
-                fn ($query) => $query->whereKey($requestedStoreId),
-            )
+            ->where('status', '!=', 'disconnected')
             ->orderBy('name')
-            ->first();
+            ->get(['id', 'name', 'domain', 'status', 'last_synced_at', 'meta']);
 
-        if ($connection === null && is_string($requestedStoreId) && $requestedStoreId !== '') {
-            $connection = StoreConnection::query()
-                ->where('account_id', $accountId)
-                ->orderBy('name')
-                ->first();
-        }
+        $activeStoreId = $activeConversation?->store_connection_id
+            ?? (is_string($requestedStoreId) && $requestedStoreId !== '' ? $requestedStoreId : null)
+            ?? $stores->first()?->id;
+
+        $activeStore = $stores->firstWhere('id', $activeStoreId);
 
         $prefillPrompt = $request->query('prompt');
         $prefillPrompt = is_string($prefillPrompt) && $prefillPrompt !== ''
             ? $prefillPrompt
             : null;
 
+        $credential = OpenRouterCredential::query()
+            ->where('account_id', $accountId)
+            ->first();
+
         return Inertia::render('chat/index', [
-            'storeSync' => $this->storeSyncProps($connection),
+            'stores' => $stores->map(fn (StoreConnection $store) => [
+                'id' => $store->id,
+                'name' => $store->name,
+                'domain' => $store->domain,
+                'status' => $store->status,
+                'lastSyncedAt' => $store->last_synced_at?->toIso8601String(),
+            ])->values(),
+            'hasStores' => $stores->isNotEmpty(),
+            'hasValidByok' => $credential?->validated_at !== null,
+            'modelTiers' => $models->forFrontend(),
+            'conversations' => $chat->listConversations($accountId),
+            'activeStoreId' => $activeStoreId,
+            'storeSync' => $this->storeSyncProps($activeStore),
             'prefillPrompt' => $prefillPrompt,
+            'activeConversationId' => $activeConversation?->id,
+            'initialMessages' => $activeConversation !== null
+                ? $chat->getHistory($activeConversation->id)
+                : [],
+            'defaultModel' => $credential?->default_model ?? config('openrouter.default_model'),
         ]);
     }
 

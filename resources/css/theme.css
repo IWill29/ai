@@ -89,6 +89,9 @@
     --sidebar-border: oklch(0.928 0.012 277);
     --sidebar-ring: oklch(0.72 0.12 277);
     --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --chat-sidebar-width: 260px;
+    --chat-history-width: 300px;
     --landing-max-width: 72rem;
 }
 

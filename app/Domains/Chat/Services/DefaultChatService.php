@@ -8,12 +8,14 @@ use App\Domains\Chat\Contracts\ChatService;
 use App\Domains\Chat\DTOs\ActionStepDTO;
 use App\Domains\Chat\DTOs\AttachmentDTO;
 use App\Domains\Chat\DTOs\ConversationDTO;
+use App\Domains\Chat\DTOs\ConversationSummaryDTO;
 use App\Domains\Chat\DTOs\MessageDTO;
 use App\Domains\Chat\Enums\MessageRole;
 use App\Domains\Chat\Models\ActionStep;
 use App\Domains\Chat\Models\Conversation;
 use App\Domains\Chat\Models\Message;
 use App\Domains\Chat\Models\MessageAttachment;
+use Illuminate\Support\Str;
 
 final class DefaultChatService implements ChatService
 {
@@ -49,6 +51,12 @@ final class DefaultChatService implements ChatService
                 ->where('account_id', $conversation->account_id)
                 ->whereIn('id', $attachmentIds)
                 ->update(['message_id' => $message->id]);
+        }
+
+        if ($conversation->title === null && trim($content) !== '') {
+            $conversation->update([
+                'title' => Str::limit(trim($content), 48, '…'),
+            ]);
         }
 
         return $this->toMessageDto($message->fresh(['attachments', 'actionSteps']));
@@ -113,6 +121,23 @@ final class DefaultChatService implements ChatService
             ->orderBy('created_at')
             ->get()
             ->map(fn (Message $message) => $this->toMessageDto($message))
+            ->all();
+    }
+
+    public function listConversations(string $accountId, int $limit = 50): array
+    {
+        return Conversation::query()
+            ->where('account_id', $accountId)
+            ->orderByDesc('updated_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn (Conversation $conversation) => new ConversationSummaryDTO(
+                id: $conversation->id,
+                title: $conversation->title,
+                model: $conversation->model,
+                storeConnectionId: $conversation->store_connection_id,
+                updatedAt: $conversation->updated_at?->toIso8601String() ?? now()->toIso8601String(),
+            ))
             ->all();
     }
 

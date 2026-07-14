@@ -54,6 +54,13 @@ readonly monthlyMessageLimit: number | null,
 }
 namespace Chat {
 namespace DTOs {
+export type ConversationSummaryDTO = {
+readonly id: string,
+readonly title: string | null,
+readonly model: string | null,
+readonly storeConnectionId: string | null,
+readonly updatedAt: string,
+};
 export type ActionStepDTO = {
 readonly id: string,
 readonly stepOrder: number,

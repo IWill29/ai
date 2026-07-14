@@ -26,6 +26,7 @@ Route::post('/webhooks/shopify/{storeConnectionId}', [ShopifyWebhookController::
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
     Route::get('agent/models', ModelAllowListController::class)->name('agent.models');
     Route::post('conversations', [ConversationController::class, 'store'])->name('conversations.store');
     Route::post('conversations/{conversation}/stream', [AgentStreamController::class, 'store'])

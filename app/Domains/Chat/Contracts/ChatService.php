@@ -6,6 +6,7 @@ namespace App\Domains\Chat\Contracts;
 
 use App\Domains\Chat\DTOs\ActionStepDTO;
 use App\Domains\Chat\DTOs\ConversationDTO;
+use App\Domains\Chat\DTOs\ConversationSummaryDTO;
 use App\Domains\Chat\DTOs\MessageDTO;
 
 /**
@@ -30,4 +31,7 @@ interface ChatService
 
     /** @return array<int, MessageDTO> */
     public function getHistory(string $conversationId): array;
+
+    /** @return array<int, ConversationSummaryDTO> */
+    public function listConversations(string $accountId, int $limit = 50): array;
 }
