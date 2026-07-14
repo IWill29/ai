@@ -5,24 +5,18 @@ declare(strict_types=1);
 namespace Tests\Feature\AI;
 
 use App\Domains\AI\Contracts\AgentLlmPort;
-use App\Domains\AI\Contracts\AgentService;
 use App\Domains\AI\DTOs\LlmResponse;
 use App\Domains\AI\DTOs\ToolCall;
 use App\Domains\AI\Enums\StepStatus;
-use App\Domains\AI\Services\DefaultAgentService;
 use App\Domains\Billing\Models\AuditLog;
 use App\Domains\Billing\Models\UsageCounter;
 use App\Domains\Chat\Models\ActionStep;
-use App\Domains\Stores\Contracts\StoreAdapterFactory;
-use App\Domains\Stores\Contracts\StorePort;
-use App\Domains\Stores\DTOs\OrderDTO;
 use App\Domains\Stores\Models\SyncedOrder;
 use App\Models\User;
-use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
-use Mockery;
 use Tests\Concerns\CreatesAgentFixtures;
+use Tests\Concerns\MocksAgentLlm;
 use Tests\Concerns\SeedsPlans;
 use Tests\Support\AgentTestData;
 use Tests\TestCase;
@@ -35,6 +29,7 @@ use Tests\TestCase;
 class AgentScenarioTest extends TestCase
 {
     use CreatesAgentFixtures;
+    use MocksAgentLlm;
     use RefreshDatabase;
     use SeedsPlans;
 
@@ -68,10 +63,10 @@ class AgentScenarioTest extends TestCase
         $step = $this->assertWriteStreamPauses($user, $conversationId);
         $this->assertSame(1, UsageCounter::query()->where('account_id', $user->account_id)->value('agent_messages'));
 
-        $this->confirmFulfillment($user, $step, AgentTestData::ORDER_100);
+        $this->confirmFulfillment($user, $step, AgentTestData::ORDER_100, expectAuditLog: true);
 
         $this->resetAgentContainer();
-        $this->mockResumeAnswerLlm();
+        $this->mockResumeAnswerLlm('Order fulfilled successfully.');
         $this->assertResumeStreamCompletes($user, $conversationId);
 
         $counter->refresh();
@@ -88,23 +83,13 @@ class AgentScenarioTest extends TestCase
         $this->mockFulfillOrderLlm(AgentTestData::ORDER_200);
 
         $declineStream = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Fulfill order 200',
+            'message' => AgentTestData::CHAT_FULFILL_ORDER_200,
         ]);
 
-        $declineStream->assertOk();
-        $this->assertStringContainsString('confirmation_required', $declineStream->streamedContent());
+        $this->assertStreamRequiresConfirmation($declineStream);
 
         $step = ActionStep::query()->where('tool_name', 'fulfill_order')->firstOrFail();
-
-        $storePort = Mockery::mock(StorePort::class);
-        $storePort->shouldNotReceive('fulfillOrder');
-        $factory = Mockery::mock(StoreAdapterFactory::class);
-        $factory->shouldReceive('for')->andReturn($storePort);
-        $this->instance(StoreAdapterFactory::class, $factory);
-
-        $this->actingAs($user)->postJson(route('action-steps.confirm', $step), [
-            'confirmed' => false,
-        ])->assertOk();
+        $this->declineFulfillment($user, $step);
 
         $step->refresh();
         $this->assertSame(StepStatus::Failed->value, $step->status);
@@ -203,7 +188,7 @@ class AgentScenarioTest extends TestCase
         $this->assertStringContainsString('list_orders', $readBody);
         $this->assertStringContainsString('event: step_done', $readBody);
         $this->assertStringContainsString('event: text_delta', $readBody);
-        $this->assertStringContainsString('"status":"completed"', $readBody);
+        $this->assertStringContainsString(AgentTestData::SSE_STATUS_COMPLETED, $readBody);
 
         $this->assertDatabaseHas('action_steps', [
             'tool_name' => 'list_orders',
@@ -211,102 +196,21 @@ class AgentScenarioTest extends TestCase
         ]);
     }
 
-    private function mockFulfillOrderLlm(string $orderExternalId): void
-    {
-        $this->mock(AgentLlmPort::class, function ($mock) use ($orderExternalId): void {
-            $mock->shouldReceive('stream')
-                ->once()
-                ->andReturn(new LlmResponse(
-                    content: null,
-                    toolCalls: [
-                        new ToolCall(
-                            id: 'call_fulfill_1',
-                            name: 'fulfill_order',
-                            arguments: ['external_id' => $orderExternalId],
-                        ),
-                    ],
-                    finishReason: 'tool_calls',
-                    promptTokens: 15,
-                    completionTokens: 3,
-                    model: AgentTestData::DEFAULT_MODEL,
-                ));
-        });
-    }
-
     private function assertWriteStreamPauses(User $user, string $conversationId): ActionStep
     {
         $writeStream = $this->actingAs($user)->post(route('conversations.stream', $conversationId), [
-            'message' => 'Fulfill order 100',
+            'message' => AgentTestData::CHAT_FULFILL_ORDER_100,
         ]);
 
         $writeBody = $writeStream->streamedContent();
         $writeStream->assertOk();
-        $this->assertStringContainsString('event: confirmation_required', $writeBody);
-        $this->assertStringContainsString('"status":"awaiting_confirmation"', $writeBody);
+        $this->assertStringContainsString(AgentTestData::SSE_EVENT_CONFIRMATION_REQUIRED, $writeBody);
+        $this->assertStringContainsString(AgentTestData::SSE_STATUS_AWAITING_CONFIRMATION, $writeBody);
 
         return ActionStep::query()
             ->where('tool_name', 'fulfill_order')
             ->where('status', StepStatus::AwaitingConfirmation->value)
             ->firstOrFail();
-    }
-
-    private function confirmFulfillment(User $user, ActionStep $step, string $orderExternalId): void
-    {
-        $orderDto = new OrderDTO(
-            externalId: $orderExternalId,
-            orderNumber: '#1001',
-            financialStatus: 'paid',
-            fulfillmentStatus: 'fulfilled',
-            totalPriceMinor: 2500,
-            currency: 'EUR',
-            customerExternalId: null,
-            lineItems: [],
-            placedAt: new DateTimeImmutable,
-        );
-
-        $storePort = Mockery::mock(StorePort::class);
-        $storePort->shouldReceive('fulfillOrder')
-            ->once()
-            ->with($orderExternalId, null)
-            ->andReturn($orderDto);
-
-        $factory = Mockery::mock(StoreAdapterFactory::class);
-        $factory->shouldReceive('for')->andReturn($storePort);
-        $this->instance(StoreAdapterFactory::class, $factory);
-
-        $this->actingAs($user)->postJson(route('action-steps.confirm', $step), [
-            'confirmed' => true,
-        ])->assertOk();
-
-        $step->refresh();
-        $this->assertSame(StepStatus::Done->value, $step->status);
-
-        $this->assertDatabaseHas('audit_logs', [
-            'account_id' => $user->account_id,
-            'action' => 'tool.fulfill_order',
-        ]);
-    }
-
-    private function mockResumeAnswerLlm(): void
-    {
-        $this->mock(AgentLlmPort::class, function ($mock): void {
-            $mock->shouldReceive('stream')
-                ->once()
-                ->andReturnUsing(function (...$args) {
-                    $model = $args[1];
-                    $onDelta = $args[4];
-                    $onDelta('Order fulfilled successfully.');
-
-                    return new LlmResponse(
-                        content: 'Order fulfilled successfully.',
-                        toolCalls: [],
-                        finishReason: 'stop',
-                        promptTokens: 25,
-                        completionTokens: 8,
-                        model: $model,
-                    );
-                });
-        });
     }
 
     private function assertResumeStreamCompletes(User $user, string $conversationId): TestResponse
@@ -316,15 +220,8 @@ class AgentScenarioTest extends TestCase
         $resumeBody = $resumeStream->streamedContent();
         $resumeStream->assertOk();
         $this->assertStringContainsString('event: text_delta', $resumeBody);
-        $this->assertStringContainsString('"status":"completed"', $resumeBody);
+        $this->assertStringContainsString(AgentTestData::SSE_STATUS_COMPLETED, $resumeBody);
 
         return $resumeStream;
-    }
-
-    private function resetAgentContainer(): void
-    {
-        $this->app->forgetInstance(AgentLlmPort::class);
-        $this->app->forgetInstance(AgentService::class);
-        $this->app->forgetInstance(DefaultAgentService::class);
     }
 }

@@ -7,6 +7,7 @@ namespace Tests\Feature\AI;
 use App\Domains\AI\Services\OpenRouterEmbeddingAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Tests\Support\AgentTestData;
 use Tests\TestCase;
 
 class OpenRouterEmbeddingAdapterTest extends TestCase
@@ -27,7 +28,7 @@ class OpenRouterEmbeddingAdapterTest extends TestCase
 
         $embedding = app(OpenRouterEmbeddingAdapter::class)->embed(
             apiKey: 'sk-or-v1-merchant-specific-key',
-            text: 'Merchant preference: brief answers',
+            text: AgentTestData::MEMORY_PREFERENCE_BRIEF_ANSWERS,
             accountId: 'account-123',
         );
 

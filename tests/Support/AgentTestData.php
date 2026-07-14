@@ -30,5 +30,17 @@ final class AgentTestData
 
     public const CHAT_FULFILL_ORDER_200 = 'Fulfill order 200';
 
+    public const CHAT_FULFILL_ORDER_1 = 'Fulfill order 1';
+
     public const SSE_STATUS_COMPLETED = '"status":"completed"';
+
+    public const SSE_STATUS_AWAITING_CONFIRMATION = '"status":"awaiting_confirmation"';
+
+    public const SSE_CONFIRMATION_REQUIRED = 'confirmation_required';
+
+    public const SSE_EVENT_CONFIRMATION_REQUIRED = 'event: confirmation_required';
+
+    public const MEMORY_PREFERENCE_EUR_FORMATTING = 'Merchant preference: use EUR formatting';
+
+    public const MERCHANT_MESSAGE_EUR_FORMATTING = 'Always use EUR formatting';
 }
