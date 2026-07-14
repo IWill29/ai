@@ -8,11 +8,10 @@ use App\Domains\Accounts\Models\OpenRouterCredential;
 use App\Domains\AI\Services\ModelAllowList;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class ModelAllowListController extends Controller
 {
-    public function __invoke(Request $request, ModelAllowList $models): JsonResponse
+    public function __invoke(ModelAllowList $models): JsonResponse
     {
         $this->authorize('viewAny', OpenRouterCredential::class);
 

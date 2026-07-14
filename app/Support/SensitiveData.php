@@ -10,6 +10,8 @@ final class SensitiveData
 {
     public const REDACTED = '[redacted]';
 
+    private const MAX_INPUT_LENGTH = 10_000;
+
     /** @var list<string> */
     private const SENSITIVE_KEYS = [
         'access_token',
@@ -59,14 +61,34 @@ final class SensitiveData
 
     public static function sanitizeMessage(string $message): string
     {
-        $message = preg_replace_callback(
+        if (strlen($message) > self::MAX_INPUT_LENGTH) {
+            $message = mb_substr($message, 0, self::MAX_INPUT_LENGTH);
+        }
+
+        $redacted = preg_replace_callback(
             '/HTTP \d+:\s*.+/',
-            static fn (array $matches): string => preg_replace('/:\s*.+$/', '.', $matches[0]) ?? $matches[0],
+            static function (array $matches): string {
+                $result = preg_replace('/:\s*.+$/', '.', $matches[0]);
+
+                return $result ?? 'HTTP '.self::REDACTED.'.';
+            },
             $message,
-        ) ?? $message;
+        );
+
+        if ($redacted === null) {
+            return self::REDACTED;
+        }
+
+        $message = $redacted;
 
         foreach (self::SENSITIVE_PATTERNS as $pattern) {
-            $message = preg_replace($pattern, self::REDACTED, $message) ?? $message;
+            $result = preg_replace($pattern, self::REDACTED, $message);
+
+            if ($result === null) {
+                return self::REDACTED;
+            }
+
+            $message = $result;
         }
 
         if (strlen($message) > 500) {
@@ -107,7 +129,13 @@ final class SensitiveData
         $normalized = strtolower($key);
 
         foreach (self::SENSITIVE_KEYS as $sensitiveKey) {
-            if ($normalized === $sensitiveKey || str_contains($normalized, $sensitiveKey)) {
+            if ($normalized === $sensitiveKey) {
+                return true;
+            }
+
+            $pattern = '/(?:^|[._-])'.preg_quote($sensitiveKey, '/').'(?:$|[._-])/';
+
+            if (preg_match($pattern, $normalized) === 1) {
                 return true;
             }
         }

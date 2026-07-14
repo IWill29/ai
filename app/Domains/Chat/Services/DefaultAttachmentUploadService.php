@@ -8,9 +8,9 @@ use App\Domains\Billing\Actions\RecordAuditAction;
 use App\Domains\Chat\Contracts\AttachmentUploadService;
 use App\Domains\Chat\DTOs\AttachmentDTO;
 use App\Domains\Chat\Models\MessageAttachment;
+use App\Support\AttachmentStorage;
 use App\Support\ImageFileValidator;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 final class DefaultAttachmentUploadService implements AttachmentUploadService
@@ -25,11 +25,10 @@ final class DefaultAttachmentUploadService implements AttachmentUploadService
         $this->assertPendingLimit($accountId);
 
         $mimeType = $this->validator->validate($file);
-        $disk = $this->disk();
         $extension = $this->extensionForMime($mimeType, $file);
         $path = sprintf('%s/%s.%s', $accountId, Str::uuid(), $extension);
 
-        Storage::disk($disk)->put($path, $file->getContent());
+        AttachmentStorage::disk()->put($path, $file->getContent());
 
         $attachment = MessageAttachment::query()->create([
             'account_id' => $accountId,
@@ -73,7 +72,7 @@ final class DefaultAttachmentUploadService implements AttachmentUploadService
             ->where('status', 'pending')
             ->firstOrFail();
 
-        Storage::disk($this->disk())->delete($attachment->storage_path);
+        AttachmentStorage::disk()->delete($attachment->storage_path);
         $attachment->delete();
     }
 
@@ -118,10 +117,5 @@ final class DefaultAttachmentUploadService implements AttachmentUploadService
             'image/gif' => 'gif',
             default => $file->guessExtension() ?? 'bin',
         };
-    }
-
-    private function disk(): string
-    {
-        return (string) config('agent.attachment.disk', 'attachments');
     }
 }

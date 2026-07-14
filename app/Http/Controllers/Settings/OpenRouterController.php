@@ -40,16 +40,6 @@ class OpenRouterController extends Controller
         SaveOpenRouterKeyRequest $request,
         SaveOpenRouterKeyAction $saveOpenRouterKey,
     ): RedirectResponse {
-        $credential = OpenRouterCredential::query()
-            ->where('account_id', $request->user()->account_id)
-            ->first();
-
-        if ($credential !== null) {
-            $this->authorize('update', $credential);
-        } else {
-            $this->authorize('create', OpenRouterCredential::class);
-        }
-
         try {
             $saveOpenRouterKey->execute(
                 accountId: $request->user()->account_id,

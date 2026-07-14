@@ -31,30 +31,31 @@ class ProfileController extends Controller
         $user = $request->user();
         $user->fill($request->validated());
 
+        $fields = [];
+
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
-            $user->save();
-            $user->sendEmailVerificationNotification();
+            $fields[] = 'email';
+        }
 
+        if ($user->isDirty('name')) {
+            $fields[] = 'name';
+        }
+
+        $user->save();
+
+        if (in_array('email', $fields, true)) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        if ($fields !== []) {
             $recordAudit->execute(
                 accountId: (string) $user->account_id,
                 userId: $user->id,
                 storeConnectionId: null,
                 action: 'profile.update',
-                context: ['fields' => ['email']],
+                context: ['fields' => $fields],
             );
-        } else {
-            $user->save();
-
-            if ($user->wasChanged('name')) {
-                $recordAudit->execute(
-                    accountId: (string) $user->account_id,
-                    userId: $user->id,
-                    storeConnectionId: null,
-                    action: 'profile.update',
-                    context: ['fields' => ['name']],
-                );
-            }
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
@@ -65,12 +66,6 @@ class ProfileController extends Controller
     public function destroy(ProfileDeleteRequest $request, AccountService $accounts, RecordAuditAction $recordAudit): RedirectResponse
     {
         $user = $request->user();
-        $account = $user->account;
-
-        if ($account !== null) {
-            $this->authorize('delete', $account);
-        }
-
         $accountId = $user->account_id;
 
         if ($accountId !== null) {

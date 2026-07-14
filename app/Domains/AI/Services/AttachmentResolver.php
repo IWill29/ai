@@ -6,7 +6,7 @@ namespace App\Domains\AI\Services;
 
 use App\Domains\Chat\Models\MessageAttachment;
 use App\Domains\Stores\DTOs\ProductImageInput;
-use Illuminate\Support\Facades\Storage;
+use App\Support\AttachmentStorage;
 
 final class AttachmentResolver
 {
@@ -33,8 +33,7 @@ final class AttachmentResolver
 
         return $attachments
             ->map(fn (MessageAttachment $attachment) => new ProductImageInput(
-                localPath: Storage::disk((string) config('agent.attachment.disk', 'attachments'))
-                    ->path($attachment->storage_path),
+                localPath: AttachmentStorage::disk()->path($attachment->storage_path),
                 mimeType: $attachment->mime_type,
                 filename: $attachment->filename,
             ))
@@ -50,8 +49,7 @@ final class AttachmentResolver
             ->get();
 
         foreach ($attachments as $attachment) {
-            Storage::disk((string) config('agent.attachment.disk', 'attachments'))
-                ->delete($attachment->storage_path);
+            AttachmentStorage::disk()->delete($attachment->storage_path);
             $attachment->update(['status' => 'consumed']);
         }
     }

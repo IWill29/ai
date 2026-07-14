@@ -8,8 +8,8 @@ use App\Domains\Chat\Contracts\AttachmentUploadService;
 use App\Domains\Chat\Models\MessageAttachment;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\StoreAttachmentRequest;
+use App\Support\AttachmentStorage;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -17,8 +17,6 @@ final class AttachmentController extends Controller
 {
     public function store(StoreAttachmentRequest $request, AttachmentUploadService $attachments): JsonResponse
     {
-        $this->authorize('create', MessageAttachment::class);
-
         $user = $request->user();
 
         try {
@@ -41,8 +39,7 @@ final class AttachmentController extends Controller
         $this->authorize('view', $attachment);
 
         return response()->stream(function () use ($attachment): void {
-            echo Storage::disk((string) config('agent.attachment.disk', 'attachments'))
-                ->get($attachment->storage_path);
+            echo AttachmentStorage::disk()->get($attachment->storage_path);
         }, 200, [
             'Content-Type' => $attachment->mime_type,
             'Cache-Control' => 'private, max-age=3600',

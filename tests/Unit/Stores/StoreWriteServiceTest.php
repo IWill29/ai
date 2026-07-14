@@ -67,7 +67,7 @@ class StoreWriteServiceTest extends TestCase
         ]);
 
         $service = new StoreWriteService(
-            new StoreAdapterManager,
+            new StoreAdapterManager(),
             app(RecordAuditAction::class),
         );
 

@@ -13,13 +13,19 @@ class ProfileDeleteRequest extends FormRequest
 
     public function authorize(): bool
     {
-        $account = $this->user()?->account;
+        $user = $this->user();
 
-        if (! $account instanceof Account) {
+        if ($user === null) {
             return false;
         }
 
-        return $this->user()?->can('delete', $account) ?? false;
+        $account = $user->account;
+
+        if (! $account instanceof Account) {
+            return true;
+        }
+
+        return $user->can('delete', $account);
     }
 
     /**

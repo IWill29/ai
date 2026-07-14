@@ -21,6 +21,12 @@ final class EndpointAuthorizationTest extends TestCase
             ->assertOk();
     }
 
+    public function test_billing_page_rejects_guests(): void
+    {
+        $this->get(route('settings.billing'))
+            ->assertRedirect(route('login'));
+    }
+
     public function test_model_allow_list_requires_account_membership(): void
     {
         $user = User::factory()->create();
@@ -29,5 +35,11 @@ final class EndpointAuthorizationTest extends TestCase
             ->getJson(route('agent.models'))
             ->assertOk()
             ->assertJsonStructure(['tiers']);
+    }
+
+    public function test_model_allow_list_rejects_guests(): void
+    {
+        $this->getJson(route('agent.models'))
+            ->assertUnauthorized();
     }
 }

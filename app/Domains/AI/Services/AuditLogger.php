@@ -21,6 +21,10 @@ final class AuditLogger
     {
         $conversation = $step->message->conversation;
 
+        $summary = $result['ok']
+            ? SensitiveData::redactContext(is_array($result['data'] ?? null) ? $result['data'] : [])
+            : SensitiveData::sanitizeMessage((string) ($result['error'] ?? 'Tool execution failed.'));
+
         $this->recordAudit->execute(
             accountId: $conversation->account_id,
             userId: $conversation->user_id,
@@ -29,9 +33,7 @@ final class AuditLogger
             context: [
                 'arguments' => SensitiveData::redactContext($step->arguments ?? []),
                 'result' => $result['ok'] ? 'success' : 'failed',
-                'summary' => $result['ok']
-                    ? SensitiveData::redactContext(is_array($result['data'] ?? null) ? $result['data'] : [])
-                    : SensitiveData::sanitizeMessage((string) ($result['error'] ?? 'Tool execution failed.')),
+                'summary' => $summary,
             ],
         );
     }

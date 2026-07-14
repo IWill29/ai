@@ -62,6 +62,17 @@ final class ImageFileValidator
 
     public function detectMime(UploadedFile $file): ?string
     {
+        $header = $this->readFileHeader($file);
+
+        if ($header === null) {
+            return null;
+        }
+
+        return $this->matchMimeFromHeader($header);
+    }
+
+    private function readFileHeader(UploadedFile $file): ?string
+    {
         $path = $file->getRealPath();
 
         if ($path === false) {
@@ -81,17 +92,24 @@ final class ImageFileValidator
             return null;
         }
 
+        return $header;
+    }
+
+    private function matchMimeFromHeader(string $header): ?string
+    {
         $bytes = array_values(unpack('C*', $header) ?: []);
 
         foreach (self::SIGNATURES as $mime => $signatures) {
             foreach ($signatures as $signature) {
-                if ($this->matchesSignature($bytes, $signature)) {
-                    if ($mime === 'image/webp' && ! $this->isWebp($header)) {
-                        continue;
-                    }
-
-                    return $mime;
+                if (! $this->matchesSignature($bytes, $signature)) {
+                    continue;
                 }
+
+                if ($mime === 'image/webp' && ! $this->isWebp($header)) {
+                    continue;
+                }
+
+                return $mime;
             }
         }
 

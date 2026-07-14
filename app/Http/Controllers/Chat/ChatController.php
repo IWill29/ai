@@ -15,8 +15,6 @@ final class ChatController extends Controller
 {
     public function index(ChatIndexRequest $request): Response
     {
-        $this->authorize('viewAny', StoreConnection::class);
-
         $accountId = $request->user()->account_id;
         $requestedStoreId = $request->validated('store_id');
 

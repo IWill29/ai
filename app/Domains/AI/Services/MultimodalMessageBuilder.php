@@ -8,7 +8,7 @@ use App\Domains\AI\DTOs\LlmContentPart;
 use App\Domains\AI\DTOs\LlmMessage;
 use App\Domains\Chat\DTOs\MessageDTO;
 use App\Domains\Chat\Models\MessageAttachment;
-use Illuminate\Support\Facades\Storage;
+use App\Support\AttachmentStorage;
 
 final class MultimodalMessageBuilder
 {
@@ -42,8 +42,7 @@ final class MultimodalMessageBuilder
     private function toDataUrl(string $attachmentId): string
     {
         $attachment = MessageAttachment::query()->findOrFail($attachmentId);
-        $binary = Storage::disk((string) config('agent.attachment.disk', 'attachments'))
-            ->get($attachment->storage_path);
+        $binary = AttachmentStorage::disk()->get($attachment->storage_path);
 
         return 'data:'.$attachment->mime_type.';base64,'.base64_encode($binary);
     }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Security;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Domains\Stores\Enums\Platform;
 use App\Domains\Stores\Models\StoreConnection;
 use App\Domains\Stores\Models\StoreCredential;
 use App\Models\User;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
@@ -64,6 +64,23 @@ class CsrfProtectionTest extends TestCase
         $this->enforcedCsrfMiddleware()->handle($request, fn () => response('ok'));
     }
 
+    public function test_invalid_csrf_token_is_rejected_with_same_origin_header(): void
+    {
+        $this->startSession();
+
+        $request = Request::create('/login', 'POST', [
+            'email' => 'user@example.com',
+            'password' => 'password',
+        ]);
+        $request->setLaravelSession($this->app->make('session.store'));
+        $request->headers->set('X-CSRF-TOKEN', 'invalid-token');
+        $request->headers->set('Sec-Fetch-Site', 'same-origin');
+
+        $this->expectException(TokenMismatchException::class);
+
+        $this->enforcedCsrfMiddleware()->handle($request, fn () => response('ok'));
+    }
+
     public function test_register_path_is_not_excluded_from_csrf_verification(): void
     {
         $this->skipUnlessFortifyHas(Features::registration());
@@ -96,14 +113,14 @@ class CsrfProtectionTest extends TestCase
         )->assertOk();
     }
 
-    private function csrfMiddleware(): TestablePreventRequestForgery
+    private function csrfMiddleware(): TestableVerifyCsrfToken
     {
-        return new TestablePreventRequestForgery($this->app, $this->app->make(Encrypter::class));
+        return new TestableVerifyCsrfToken($this->app, $this->app->make(Encrypter::class));
     }
 
-    private function enforcedCsrfMiddleware(): TestablePreventRequestForgery
+    private function enforcedCsrfMiddleware(): TestableVerifyCsrfToken
     {
-        return new TestablePreventRequestForgery($this->app, $this->app->make(Encrypter::class), enforce: true);
+        return new TestableVerifyCsrfToken($this->app, $this->app->make(Encrypter::class), enforce: true);
     }
 
     private function createWebhookConnection(): StoreConnection
@@ -128,7 +145,7 @@ class CsrfProtectionTest extends TestCase
     }
 }
 
-final class TestablePreventRequestForgery extends PreventRequestForgery
+final class TestableVerifyCsrfToken extends VerifyCsrfToken
 {
     public function __construct(
         Application $app,

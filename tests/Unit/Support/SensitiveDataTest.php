@@ -55,6 +55,20 @@ final class SensitiveDataTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_redact_innocent_keys_with_embedded_sensitive_substrings(): void
+    {
+        $redacted = SensitiveData::redactContext([
+            'external_id' => '123',
+            'monotone' => 'steady',
+            'product_id' => 'prod-1',
+        ]);
+
+        $this->assertSame('123', $redacted['external_id']);
+        $this->assertSame('steady', $redacted['monotone']);
+        $this->assertSame('prod-1', $redacted['product_id']);
+    }
+
+    #[Test]
     public function it_redacts_token_patterns_from_messages(): void
     {
         $message = SensitiveData::sanitizeMessage(
