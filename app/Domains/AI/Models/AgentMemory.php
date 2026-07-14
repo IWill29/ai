@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Pgvector\Laravel\HasNeighbors;
 use Pgvector\Laravel\Vector;
 
+/**
+ * @property array<string, mixed>|null $meta
+ */
 class AgentMemory extends Model
 {
     use HasNeighbors, HasUuids;

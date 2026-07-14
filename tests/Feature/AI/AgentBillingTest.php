@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AI;
 
-use App\Domains\AI\Contracts\AgentLlmPort;
-use App\Domains\AI\Contracts\AgentService;
-use App\Domains\AI\DTOs\LlmResponse;
-use App\Domains\AI\DTOs\ToolCall;
-use App\Domains\AI\Services\DefaultAgentService;
 use App\Domains\Billing\Models\UsageCounter;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesAgentFixtures;
+use Tests\Concerns\MocksAgentLlm;
 use Tests\Concerns\SeedsPlans;
 use Tests\Support\AgentTestData;
 use Tests\TestCase;
@@ -20,6 +16,7 @@ use Tests\TestCase;
 class AgentBillingTest extends TestCase
 {
     use CreatesAgentFixtures;
+    use MocksAgentLlm;
     use RefreshDatabase;
     use SeedsPlans;
 
@@ -28,9 +25,7 @@ class AgentBillingTest extends TestCase
         parent::setUp();
 
         $this->seedPlans();
-        $this->app->forgetInstance(AgentLlmPort::class);
-        $this->app->forgetInstance(AgentService::class);
-        $this->app->forgetInstance(DefaultAgentService::class);
+        $this->resetAgentContainer();
     }
 
     public function test_does_not_increment_counter_when_paused_for_confirmation(): void
@@ -40,31 +35,14 @@ class AgentBillingTest extends TestCase
         $this->createOpenRouterCredential($user);
         $conversation = $this->createConversation($user, $store);
 
-        $this->mock(AgentLlmPort::class, function ($mock): void {
-            $mock->shouldReceive('stream')
-                ->once()
-                ->andReturn(new LlmResponse(
-                    content: null,
-                    toolCalls: [
-                        new ToolCall(
-                            id: 'call_fulfill_1',
-                            name: 'fulfill_order',
-                            arguments: ['external_id' => AgentTestData::ORDER_1],
-                        ),
-                    ],
-                    finishReason: 'tool_calls',
-                    promptTokens: 10,
-                    completionTokens: 2,
-                    model: AgentTestData::DEFAULT_MODEL,
-                ));
-        });
+        $this->mockFulfillOrderLlm();
 
         $response = $this->actingAs($user)->post(route('conversations.stream', $conversation), [
-            'message' => 'Fulfill order 1',
+            'message' => AgentTestData::CHAT_FULFILL_ORDER_1,
         ]);
 
         $response->assertOk();
-        $this->assertStringContainsString('awaiting_confirmation', $response->streamedContent());
+        $this->assertStringContainsString(AgentTestData::SSE_STATUS_AWAITING_CONFIRMATION, $response->streamedContent());
 
         $counter = UsageCounter::query()->where('account_id', $user->account_id)->first();
         $this->assertNotNull($counter);
